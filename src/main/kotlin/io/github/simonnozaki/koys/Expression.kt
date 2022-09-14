@@ -34,4 +34,17 @@ sealed class Expression {
         val condition: Expression,
         val body: Expression
     ) : Expression()
+
+    data class FunctionCall(
+        val name: String,
+        val args: List<Expression>
+    ) : Expression()
+
+    sealed class TopLevel
+
+    data class FunctionDefinition(
+        val name: String,
+        val args: List<String>,
+        val body: Expression
+    ) : TopLevel()
 }
