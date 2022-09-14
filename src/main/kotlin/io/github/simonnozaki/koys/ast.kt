@@ -38,3 +38,22 @@ fun IfExpression(
     condition: Expression,
     thenClause: Expression
 ): IfExpression = IfExpression(condition, thenClause, null)
+
+data class Program(
+    val definitions: List<TopLevel>
+)
+
+data class Environment(
+    val bindings: MutableMap<String, Int>,
+    val next: Environment?
+) {
+    fun findBindings(name: String): Map<String, Int>? {
+        if (bindings[name] == null) {
+            return null
+        }
+        if (next != null) {
+            return next.findBindings(name)
+        }
+        return null
+    }
+}
