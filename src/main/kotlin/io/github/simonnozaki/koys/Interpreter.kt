@@ -5,7 +5,6 @@ import io.github.simonnozaki.koys.Expression.*
 
 // TODO add a printer of tree node for debug logging
 class Interpreter(
-    private val environment: MutableMap<String, Int> = mutableMapOf(),
     private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
     private var variableEnvironment: Environment
 ) {
