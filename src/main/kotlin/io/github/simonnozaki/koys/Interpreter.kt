@@ -30,15 +30,21 @@ class Interpreter(
         if (expression is IntegerLiteral) {
             return expression.value
         }
-        if (expression is Expression.Identifier) {
+        if (expression is Identifier) {
             // Get variable
-            return environment[expression.value] ?: throw RuntimeException("")
+            val bindingOptions = variableEnvironment.findBindings(expression.name)
+            return bindingOptions?.let { it[expression.name] } ?: throw RuntimeException("")
         }
         if (expression is Assignment) {
             // Assign variable
-            val v = this.interpret(expression.expression)
-            this.environment[expression.name] = v
-            return v
+            val bindingOptions = variableEnvironment.findBindings(expression.name)
+            val value = interpret(expression.expression)
+            if (bindingOptions != null) {
+                bindingOptions[expression.name] = value
+            } else {
+                variableEnvironment.bindings[expression.name] = value
+            }
+            return value
         }
         if (expression is IfExpression) {
             val condition = interpret(expression.condition)
@@ -94,10 +100,9 @@ class Interpreter(
     private fun callMain(program: Program): Int {
         val topLevels = program.definitions
         for (topLevel in topLevels) {
-            if (topLevel is FunctionDefinition) {
-                functionEnvironment[topLevel.name] = topLevel
-            } else {
-                // グローバル変数対応
+            when (topLevel) {
+                is FunctionDefinition -> functionEnvironment[topLevel.name] = topLevel
+                is GlobalVariableDefinition -> variableEnvironment.bindings[topLevel.name] = interpret(topLevel.expression)
             }
         }
         val mainFunction = functionEnvironment["main"]

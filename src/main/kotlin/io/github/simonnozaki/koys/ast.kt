@@ -47,9 +47,13 @@ data class Environment(
     val bindings: MutableMap<String, Int>,
     val next: Environment?
 ) {
-    fun findBindings(name: String): Map<String, Int>? {
-        if (bindings[name] == null) {
-            return null
+    /**
+     * Get values map from variable name along to `Environment` chaining
+     * @param name
+     */
+    fun findBindings(name: String): MutableMap<String, Int>? {
+        if (bindings[name] != null) {
+            return bindings
         }
         if (next != null) {
             return next.findBindings(name)
