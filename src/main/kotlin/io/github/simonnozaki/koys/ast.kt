@@ -18,26 +18,34 @@ fun divide(lhs: Expression, rhs: Expression): BinaryExpression {
     return BinaryExpression(Operator.DIVIDE, lhs, rhs)
 }
 
+fun lessThan(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LESS_THAN, lhs, rhs)
+
 fun integer(value: Int): IntegerLiteral = IntegerLiteral(value)
 
 fun identifier(name: String) = Identifier(name)
 
 fun assign(name: String, expression: Expression) = Assignment(name, expression)
 
-fun Block(vararg expressions: Expression) = listOf(expressions)
+fun Block(vararg expressions: Expression): BlockExpression = BlockExpression(expressions.toList())
+
+fun call(name: String, vararg expressions: Expression): FunctionCall = FunctionCall(name, expressions.toList())
+
+fun Println(expression: Expression) = PrintLn(expression)
 
 fun whileExpression(condition: Expression, body: Expression) = WhileExpression(condition, body)
 
-fun IfExpression(
+fun defineFunction(name: String, args: List<String>, body: Expression) = FunctionDefinition(name, args, body)
+
+fun If(
     condition: Expression,
     thenClause: Expression,
     elseClause: Expression?
-): IfExpression = IfExpression(condition, thenClause, elseClause)
+): IfExpression = If(condition, thenClause, elseClause)
 
-fun IfExpression(
+fun If(
     condition: Expression,
     thenClause: Expression
-): IfExpression = IfExpression(condition, thenClause, null)
+): IfExpression = If(condition, thenClause, null)
 
 data class Program(
     val definitions: List<TopLevel>
