@@ -40,6 +40,10 @@ sealed class Expression {
         val args: List<Expression>
     ) : Expression()
 
+    data class PrintLn(
+        val arg: Expression
+    ) : Expression()
+
     sealed class TopLevel
 
     data class FunctionDefinition(

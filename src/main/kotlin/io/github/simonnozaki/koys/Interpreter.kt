@@ -6,7 +6,7 @@ import io.github.simonnozaki.koys.Expression.*
 // TODO add a printer of tree node for debug logging
 class Interpreter(
     private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
-    private var variableEnvironment: Environment
+    private var variableEnvironment: Environment = Environment(mutableMapOf(), null)
 ) {
     fun interpret(expression: Expression): Int {
         if (expression is BinaryExpression) {
@@ -45,6 +45,9 @@ class Interpreter(
             }
             return value
         }
+        if (expression is PrintLn) {
+            return interpret(expression.arg)
+        }
         if (expression is IfExpression) {
             val condition = interpret(expression.condition)
             // 0 = false
@@ -81,6 +84,8 @@ class Interpreter(
             val body = definition.body
 
             val values = actualParams.map { interpret(it) }
+
+            // Called variable environment should be separated from Caller
             val backup = this.variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)
             for ((i, formalParam) in formalParams.withIndex()) {
@@ -96,7 +101,7 @@ class Interpreter(
 
     private fun newEnvironment(next: Environment?): Environment = Environment(mutableMapOf(), next)
 
-    private fun callMain(program: Program): Int {
+    fun callMain(program: Program): Int {
         val topLevels = program.definitions
         for (topLevel in topLevels) {
             when (topLevel) {
