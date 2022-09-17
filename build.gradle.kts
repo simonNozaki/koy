@@ -12,6 +12,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.javafp:parsecj:0.6")
     testImplementation(kotlin("test"))
 }
 
