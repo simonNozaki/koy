@@ -8,6 +8,8 @@ class Interpreter(
     private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
     private var variableEnvironment: Environment = Environment(mutableMapOf(), null)
 ) {
+    fun getValue(name: String) = variableEnvironment.bindings[name]
+
     fun interpret(expression: Expression): Int {
         if (expression is BinaryExpression) {
             val lhs = interpret(expression.lhs)
