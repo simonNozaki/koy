@@ -5,35 +5,40 @@ import org.javafp.parsecj.Parser
 import org.javafp.parsecj.Text.*
 import java.util.function.BinaryOperator
 import io.github.simonnozaki.koys.Expression.*
+import org.javafp.parsecj.Combinators
 
-
+/**
+ * Syntax Parser
+ */
 object Parsers {
-    val SPACING: Parser<Char, Unit> = wspace.map { Unit.unit }.or(regex("(?m)//.*$").map { Unit.unit })
-    val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
-    val PLUS: Parser<Char, Unit> = string("+").then(SPACINGS)
-    val MINUS: Parser<Char, Unit> = string("-").then(SPACINGS)
-    val ASTER: Parser<Char, Unit> = string("*").then(SPACINGS)
-    val SLUSH: Parser<Char, Unit> = string("/").then(SPACINGS)
-    val EQEQ: Parser<Char, Unit> = string("==").then(SPACINGS)
-    val NE: Parser<Char, Unit> = string("!=").then(SPACINGS)
-    val LT: Parser<Char, Unit> = string("<").then(SPACINGS)
-    val LT_EQ: Parser<Char, Unit> = string("<=").then(SPACINGS)
-    val GT: Parser<Char, Unit> = string(">").then(SPACINGS)
-    val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
-    val GLOBAL: Parser<Char, Unit> = string("global").then(SPACINGS)
-    val DEFINE: Parser<Char, Unit> = string("define").then(SPACINGS)
-    val PRINTLN: Parser<Char, Unit> = string("println").then(SPACINGS)
-    val IF: Parser<Char, Unit> = string("if").then(SPACINGS)
-    val ELSE: Parser<Char, Unit> = string("else").then(SPACINGS)
-    val WHILE: Parser<Char, Unit> = string("while").then(SPACINGS)
-    val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
-    val SEMI_COLON: Parser<Char, Unit> = string(";").then(SPACINGS)
-    val EQ: Parser<Char, Unit> = string("=").then(SPACINGS)
-    val LPAREN = string("(").then(SPACINGS)
-    val RPAREN = string(")").then(SPACINGS)
-    val LBRACE = string("{").then(SPACINGS)
-    val RBRACE = string("}").then(SPACINGS)
-    val IDENT: Parser<Char, String> = regex("[a-zA-Z_][a-zA-Z0-9_]*").bind { name -> SPACINGS.map { name } }
+    private val PATTERN_IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*"
+
+    private val SPACING: Parser<Char, Unit> = wspace.map { Unit.unit }.or(regex("(?m)//.*$").map { Unit.unit })
+    private val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
+    private val PLUS: Parser<Char, Unit> = string("+").then(SPACINGS)
+    private val MINUS: Parser<Char, Unit> = string("-").then(SPACINGS)
+    private val ASTER: Parser<Char, Unit> = string("*").then(SPACINGS)
+    private val SLUSH: Parser<Char, Unit> = string("/").then(SPACINGS)
+    private val EQEQ: Parser<Char, Unit> = string("==").then(SPACINGS)
+    private val NE: Parser<Char, Unit> = string("!=").then(SPACINGS)
+    private val LT: Parser<Char, Unit> = string("<").then(SPACINGS)
+    private val LT_EQ: Parser<Char, Unit> = string("<=").then(SPACINGS)
+    private val GT: Parser<Char, Unit> = string(">").then(SPACINGS)
+    private val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
+    private val GLOBAL: Parser<Char, Unit> = string("global").then(SPACINGS)
+    private val DEFINE: Parser<Char, Unit> = string("define").then(SPACINGS)
+    private val PRINTLN: Parser<Char, Unit> = string("println").then(SPACINGS)
+    private val IF: Parser<Char, Unit> = string("if").then(SPACINGS)
+    private val ELSE: Parser<Char, Unit> = string("else").then(SPACINGS)
+    private val WHILE: Parser<Char, Unit> = string("while").then(SPACINGS)
+    private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
+    private val SEMI_COLON: Parser<Char, Unit> = string(";").then(SPACINGS)
+    private val EQ: Parser<Char, Unit> = string("=").then(SPACINGS)
+    private val LPAREN: Parser<Char, Unit> = string("(").then(SPACINGS)
+    private val RPAREN: Parser<Char, Unit> = string(")").then(SPACINGS)
+    private val LBRACE: Parser<Char, Unit> = string("{").then(SPACINGS)
+    private val RBRACE: Parser<Char, Unit> = string("}").then(SPACINGS)
+    private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     val integer = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
 
@@ -57,7 +62,25 @@ object Parsers {
      * ```
      */
     fun line(): Parser<Char, Expression> {
-        return println().or(blockExpression())
+        return println()
+            .or(blockExpression())
+            .or(ifExpression())
+            .or(whileExpression())
+            .or(expressionLine())
+            .or(assignment())
+    }
+
+    /**
+     * ```
+     * lines <- line+;
+     * ```
+     */
+    fun lines(): Parser<Char, List<Expression>> {
+        return line().many1().bind { s ->
+            Combinators.eof<Char>().map {
+                s.toList()
+            }
+        }
     }
 
     /**
@@ -76,8 +99,23 @@ object Parsers {
     /**
      * expressionLine <- expression ';'
      */
-    fun expressionLine(): Parser<Char, Expression> {
+    private fun expressionLine(): Parser<Char, Expression> {
         return expression().bind { e -> SEMI_COLON.map { e } }.attempt()
+    }
+
+    /**
+     * 関数呼び出し
+     * `(expression (',' expression)*)?` で複数の式が引数としてマッチする
+     * ```
+     * functionCall <- identifier '(' (expression (',' expression)*)? ')'
+     * ```
+     */
+    fun functionCall(): Parser<Char, FunctionCall> {
+        return IDENT.bind { identifier ->
+            expression().sepBy(COMMA).between(LPAREN, RPAREN).map {
+                FunctionCall(identifier, it.toList())
+            }
+        }.attempt()
     }
 
     /**
@@ -85,7 +123,7 @@ object Parsers {
      * topLevelDefinition <- globalVariableDefinition / functionDefinition
      * ```
      */
-    fun topLevelDefinition(): Parser<Char, TopLevel> {
+    private fun topLevelDefinition(): Parser<Char, TopLevel> {
         return globalVariableDefinition().map { it as TopLevel }.or(functionDefinition().map { it as TopLevel })
     }
 
@@ -93,7 +131,7 @@ object Parsers {
      * functionDefinition <-
      *   'define' identifier '(' (identifier (',' identifier)*)? ')' blockExpression;
      */
-    fun functionDefinition(): Parser<Char, FunctionDefinition> {
+    private fun functionDefinition(): Parser<Char, FunctionDefinition> {
         val defName = DEFINE.then(IDENT)
         val defArgs = IDENT.sepBy(COMMA).between(LPAREN, RPAREN)
 
@@ -110,7 +148,7 @@ object Parsers {
      *   'global' identifier '=' expression;
      * ```
      */
-    fun globalVariableDefinition(): Parser<Char, GlobalVariableDefinition> {
+    private fun globalVariableDefinition(): Parser<Char, GlobalVariableDefinition> {
         val defGlobal = GLOBAL.then(IDENT)
         val defInitializer = EQ.then(expression())
         return defGlobal.bind { name ->
@@ -139,20 +177,20 @@ object Parsers {
      * expression <- comparative
      * ```
      */
-    fun expression(): Parser<Char, Expression> = addictive()
+    fun expression(): Parser<Char, Expression> = comparative()
 
     /**
      * comparative <- addictive (
      *   ('==') / (!=') / ('<') / ('<=') / ('>') / ('=>') addictive
      * )*;
      */
-    fun comparative(): Parser<Char, Expression> {
-        val eqeq: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator {l, r -> equal(l, r) } }
-        val ne: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator {l, r -> notEqual(l, r) } }
-        val gt: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator {l, r -> greaterThan(l, r) } }
-        val gtEq: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator {l, r -> greaterThanEqual(l, r) } }
+    private fun comparative(): Parser<Char, Expression> {
+        val eqeq: Parser<Char, BinaryOperator<Expression>> = EQEQ.attempt().map { BinaryOperator {l, r -> equal(l, r) } }
+        val ne: Parser<Char, BinaryOperator<Expression>> = NE.attempt().map { BinaryOperator {l, r -> notEqual(l, r) } }
+        val gt: Parser<Char, BinaryOperator<Expression>> = GT.attempt().map { BinaryOperator {l, r -> greaterThan(l, r) } }
+        val gtEq: Parser<Char, BinaryOperator<Expression>> = GT_EQ.attempt().map { BinaryOperator {l, r -> greaterThanEqual(l, r) } }
         val lt: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator {l, r -> lessThan(l, r) } }
-        val ltEq: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator {l, r -> lessThanEqual(l, r) } }
+        val ltEq: Parser<Char, BinaryOperator<Expression>> = LT_EQ.attempt().map { BinaryOperator {l, r -> lessThanEqual(l, r) } }
 
         return addictive().chainl1(
             lt.or(ltEq).or(gt).or(gtEq).or(eqeq).or(ne)
@@ -165,8 +203,7 @@ object Parsers {
      *   '(+' multitive / '-' multitive)*;
      * ```
      */
-    fun addictive(): Parser<Char, Expression> {
-        val func2 = BinaryOperator { left: Expression, right: Expression -> add(left, right) }
+    private fun addictive(): Parser<Char, Expression> {
         val addition: Parser<Char, BinaryOperator<Expression>> = PLUS.map {
             BinaryOperator { left: Expression, right: Expression -> add(left, right) }
         }
@@ -182,7 +219,7 @@ object Parsers {
      *   '(+' primary / '-' primary)*;
      * ```
      */
-    fun multitive(): Parser<Char, Expression> {
+    private fun multitive(): Parser<Char, Expression> {
         val multiply: Parser<Char, BinaryOperator<Expression>> = ASTER.map {
             BinaryOperator { l, r -> multiply(l, r) }
         }
@@ -195,13 +232,19 @@ object Parsers {
     /**
      * ```
      * primary <- '(' expression ')'
+     *   / integer
+     *   / functionCall
+     *   / identifier
      * ```
      */
-    fun primary(): Parser<Char, Expression> {
+    private fun primary(): Parser<Char, Expression> {
         return LPAREN.bind {
                 expression().bind { v->  RPAREN.map { v }
             }
-        }.or(integer)
+        }
+            .or(integer)
+            .or(functionCall())
+            .or(identifier())
     }
 
     /**
@@ -209,7 +252,7 @@ object Parsers {
      * blockExpression <- '{' expression '}'
      * ```
      */
-    fun blockExpression(): Parser<Char, BlockExpression> {
+    private fun blockExpression(): Parser<Char, BlockExpression> {
         return LBRACE.bind { line().many().bind { expressions -> RBRACE.map { BlockExpression(expressions.toList()) } } }
     }
 
@@ -218,7 +261,7 @@ object Parsers {
      * ifExpression <- 'if' '(' expression ')' line ('else' line)?;
      * ```
      */
-    fun ifExpression(): Parser<Char, IfExpression> {
+    private fun ifExpression(): Parser<Char, IfExpression> {
         val condition = IF.then(expression()).between(LPAREN, RPAREN)
         return condition.bind { c ->
             line().bind { thenClause ->
@@ -229,10 +272,22 @@ object Parsers {
 
     /**
      * ```
+     * whileExpression <- 'while' '(' expression ')' line
+     * ```
+     */
+    private fun whileExpression(): Parser<Char, WhileExpression> {
+        val condition = WHILE.then(expression()).between(LPAREN, RPAREN)
+        return condition.bind { c ->
+            line().map { body -> WhileExpression(c, body) }
+        }.attempt()
+    }
+
+    /**
+     * ```
      * identifier <- Identifier
      * ```
      */
-    fun identifier(): Parser<Char, Identifier> {
+    private fun identifier(): Parser<Char, Identifier> {
         return IDENT.map { Identifier(it) }
     }
 }
