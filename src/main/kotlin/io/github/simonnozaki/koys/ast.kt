@@ -20,6 +20,16 @@ fun divide(lhs: Expression, rhs: Expression): BinaryExpression {
 
 fun lessThan(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LESS_THAN, lhs, rhs)
 
+fun lessThanEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LESS_OR_EQUAL, lhs, rhs)
+
+fun greaterThan(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.GREATER_THAN, lhs, rhs)
+
+fun greaterThanEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.GREATER_OR_EQUAL, lhs, rhs)
+
+fun equal(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.EQUAL, lhs, rhs)
+
+fun notEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.NOT_EQUAL, lhs, rhs)
+
 fun integer(value: Int): IntegerLiteral = IntegerLiteral(value)
 
 fun identifier(name: String) = Identifier(name)
