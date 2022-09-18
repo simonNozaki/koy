@@ -62,12 +62,13 @@ class Interpreter(
         if (expression is WhileExpression) {
             while (true) {
                 val condition = interpret(expression.condition)
-                return if (condition != 0) {
+                if (condition != 0) {
                     interpret(expression.body)
                 } else {
                     break;
                 }
             }
+            return 1
         }
         if (expression is BlockExpression) {
             // Block expression: interpret some expression from the top

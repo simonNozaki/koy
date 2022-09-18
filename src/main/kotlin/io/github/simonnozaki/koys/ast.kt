@@ -57,6 +57,8 @@ fun If(
     thenClause: Expression
 ): IfExpression = If(condition, thenClause, null)
 
+fun While(condition: Expression, body: Expression) = WhileExpression(condition, body)
+
 data class Program(
     val definitions: List<TopLevel>
 )
