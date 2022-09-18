@@ -40,7 +40,7 @@ object Parsers {
     private val RBRACE: Parser<Char, Unit> = string("}").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
-    val integer = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
+    val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
 
     /**
      * ```
@@ -58,10 +58,10 @@ object Parsers {
     /**
      * 行の定義、1行とカウントされる式の単位
      * ```
-     * line <- println / ifExpression / whileExpression / blockExpression / assignment
+     * line <- println / ifExpression / whileExpression / blockExpression / assignment / expressionLine
      * ```
      */
-    fun line(): Parser<Char, Expression> {
+    private fun line(): Parser<Char, Expression> {
         return println()
             .or(blockExpression())
             .or(ifExpression())
@@ -88,7 +88,7 @@ object Parsers {
      * assignment <- identifier '=' expression ';'
      * ```
      */
-    fun assignment(): Parser<Char, Assignment> {
+    private fun assignment(): Parser<Char, Assignment> {
         return IDENT.bind { name ->
             EQ.then(expression()).bind { expr ->
                 SEMI_COLON.map { Assignment(name, expr) }
@@ -110,7 +110,7 @@ object Parsers {
      * functionCall <- identifier '(' (expression (',' expression)*)? ')'
      * ```
      */
-    fun functionCall(): Parser<Char, FunctionCall> {
+    private fun functionCall(): Parser<Char, FunctionCall> {
         return IDENT.bind { identifier ->
             expression().sepBy(COMMA).between(LPAREN, RPAREN).map {
                 FunctionCall(identifier, it.toList())
@@ -252,7 +252,7 @@ object Parsers {
      * blockExpression <- '{' expression '}'
      * ```
      */
-    private fun blockExpression(): Parser<Char, BlockExpression> {
+    fun blockExpression(): Parser<Char, BlockExpression> {
         return LBRACE.bind { line().many().bind { expressions -> RBRACE.map { BlockExpression(expressions.toList()) } } }
     }
 
@@ -262,7 +262,7 @@ object Parsers {
      * ```
      */
     private fun ifExpression(): Parser<Char, IfExpression> {
-        val condition = IF.then(expression()).between(LPAREN, RPAREN)
+        val condition = IF.then(expression().between(LPAREN, RPAREN))
         return condition.bind { c ->
             line().bind { thenClause ->
                 ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause.get()) }
@@ -276,7 +276,7 @@ object Parsers {
      * ```
      */
     private fun whileExpression(): Parser<Char, WhileExpression> {
-        val condition = WHILE.then(expression()).between(LPAREN, RPAREN)
+        val condition = WHILE.then(expression().between(LPAREN, RPAREN))
         return condition.bind { c ->
             line().map { body -> WhileExpression(c, body) }
         }.attempt()

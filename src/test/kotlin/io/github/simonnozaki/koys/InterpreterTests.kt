@@ -95,4 +95,23 @@ class InterpreterTests {
 
         assertEquals(120, result)
     }
+
+    @Test
+    fun can_increment_in_while() {
+        val statements = listOf(
+            // i = 0;
+            assign("i", IntegerLiteral(0)),
+            // while(x < 10) {
+            //   i = i + 1;
+            // }
+            While(
+                BinaryExpression(Operator.LESS_THAN, identifier("i"), IntegerLiteral(10)),
+                assign("i", BinaryExpression(Operator.ADD, identifier("i"), IntegerLiteral(1)))
+            )
+        )
+        for (statement in statements) {
+            interpreter.interpret(statement)
+        }
+        assertEquals(10, interpreter.getValue("i"))
+    }
 }
