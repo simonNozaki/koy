@@ -40,6 +40,16 @@ sealed class Expression {
         val args: List<Expression>
     ) : Expression()
 
+    data class LabeledParameter(
+        val name: String,
+        val parameter: Expression
+    ) : Expression()
+
+    data class LabeledCall(
+        val name: String,
+        val args: List<LabeledParameter>
+    ) : Expression()
+
     data class PrintLn(
         val arg: Expression
     ) : Expression()

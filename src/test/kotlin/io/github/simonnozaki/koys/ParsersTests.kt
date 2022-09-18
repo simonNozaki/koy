@@ -83,4 +83,21 @@ class ParsersTests {
         assertEquals(12, result)
         assertEquals(10, interpreter.getValue("x"))
     }
+
+    @Test
+    fun can_call_labeled_function_call() {
+        val source = """
+            define power(n) {
+              n * n;
+            }
+            
+            define main() {
+              power[n=5];
+            }
+        """
+        val program = Parsers.program().parse(Input.of(source)).result
+        val result = Interpreter().callMain(program)
+
+        assertEquals(25, result)
+    }
 }

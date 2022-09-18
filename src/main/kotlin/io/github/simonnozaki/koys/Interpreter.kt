@@ -99,6 +99,34 @@ class Interpreter(
             variableEnvironment = backup
             return result
         }
+        if (expression is LabeledCall) {
+            val definition = functionEnvironment[expression.name]
+                ?: throw RuntimeException("Function ${expression.name} is not defined.")
+            // Calling parameter map: label name -> param
+            // e.g. f([x=1, y=2]) -> { x: 1, y: 2 }
+            val labelMappings = expression.args.associate { it.name to it.parameter }
+
+            val body = definition.body
+            val formalParams = definition.args
+            val actualParams = mutableListOf<Expression>()
+            // Get actual parameters from labeled parameters map, so throw exception on failed to get value from mappings
+            for (param in formalParams) {
+                val e = labelMappings[param] ?: throw RuntimeException("Parameter ${labelMappings[param]} is not defined in ${expression.name}")
+                actualParams.add(e)
+            }
+            val values = actualParams.map { interpret(it) }
+
+            // Called variable environment should be separated from Caller
+            val backup = this.variableEnvironment
+            variableEnvironment = newEnvironment(variableEnvironment)
+            for ((i, formalParam) in formalParams.withIndex()) {
+                variableEnvironment.bindings[formalParam] = values[i]
+            }
+
+            val result = interpret(body)
+            variableEnvironment = backup
+            return result
+        }
         throw RuntimeException("")
     }
 
