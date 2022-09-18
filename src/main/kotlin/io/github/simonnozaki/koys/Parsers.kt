@@ -31,6 +31,9 @@ object Parsers {
     private val IF: Parser<Char, Unit> = string("if").then(SPACINGS)
     private val ELSE: Parser<Char, Unit> = string("else").then(SPACINGS)
     private val WHILE: Parser<Char, Unit> = string("while").then(SPACINGS)
+    private val FOR: Parser<Char, Unit> = string("for").then(SPACINGS)
+    private val IN: Parser<Char, Unit> = string("in").then(SPACINGS)
+    private val TO: Parser<Char, Unit> = string("to").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
     private val SEMI_COLON: Parser<Char, Unit> = string(";").then(SPACINGS)
     private val EQ: Parser<Char, Unit> = string("=").then(SPACINGS)
@@ -38,6 +41,8 @@ object Parsers {
     private val RPAREN: Parser<Char, Unit> = string(")").then(SPACINGS)
     private val LBRACE: Parser<Char, Unit> = string("{").then(SPACINGS)
     private val RBRACE: Parser<Char, Unit> = string("}").then(SPACINGS)
+    private val LBRACKET: Parser<Char, Unit> = string("[").then(SPACINGS)
+    private val RBRACKET: Parser<Char, Unit> = string("]").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
@@ -58,13 +63,20 @@ object Parsers {
     /**
      * 行の定義、1行とカウントされる式の単位
      * ```
-     * line <- println / ifExpression / whileExpression / blockExpression / assignment / expressionLine
+     * line <- println
+     *   / ifExpression
+     *   / whileExpression
+     *   / forInExpression
+     *   / blockExpression
+     *   / assignment
+     *   / expressionLine
      * ```
      */
     private fun line(): Parser<Char, Expression> {
         return println()
             .or(blockExpression())
             .or(ifExpression())
+            .or(forInExpression())
             .or(whileExpression())
             .or(expressionLine())
             .or(assignment())
@@ -115,6 +127,25 @@ object Parsers {
             expression().sepBy(COMMA).between(LPAREN, RPAREN).map {
                 FunctionCall(identifier, it.toList())
             }
+        }.attempt()
+    }
+
+    /**
+     * ```
+     * labeledParameter <- identifier '=' expression;
+     * labeledCall <- identifier '[' (labeledParameter(',' labeledParameter)*)? ']'
+     * ```
+     */
+    private fun labeledCall(): Parser<Char, LabeledCall> {
+        return IDENT.bind { name ->
+            IDENT.bind { label ->
+                EQ.then(expression()).map { param ->
+                    LabeledParameter(label, param)
+                }
+            }
+                .sepBy(COMMA)
+                .between(LBRACKET, RBRACKET)
+                .map { LabeledCall(name, it.toList()) }
         }.attempt()
     }
 
@@ -234,6 +265,7 @@ object Parsers {
      * primary <- '(' expression ')'
      *   / integer
      *   / functionCall
+     *   / labeledCall
      *   / identifier
      * ```
      */
@@ -244,6 +276,7 @@ object Parsers {
         }
             .or(integer)
             .or(functionCall())
+            .or(labeledCall())
             .or(identifier())
     }
 
@@ -268,6 +301,34 @@ object Parsers {
                 ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause.get()) }
             }
         }.attempt()
+    }
+
+    /**
+     * ```
+     * forInExpression <- "for" "(" identifier "in" integer "to" integer ")" line
+     * ```
+     */
+    private fun forInExpression(): Parser<Char, Expression> {
+        return FOR.then(
+            LPAREN.then(IDENT).bind { name ->
+                IN.then(expression()).bind { from ->
+                    TO.then(expression()).bind { to ->
+                        RPAREN.then(line()).map {
+                            Block(
+                                assign(name, from),
+                                While(
+                                    lessThan(identifier(name), to),
+                                    Block(
+                                        it,
+                                        assign(name, add(identifier(name), integer(1)))
+                                    )
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        )
     }
 
     /**
