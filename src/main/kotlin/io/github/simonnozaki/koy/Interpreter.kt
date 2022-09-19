@@ -14,6 +14,11 @@ class Interpreter(
      */
     fun getValue(name: String) = variableEnvironment.bindings[name]
 
+    /**
+     * Return all variables and nodes of syntax tree from environment.
+     */
+    fun getVariables() = variableEnvironment.bindings.toMap()
+
     fun interpret(expression: Expression): Value {
         if (expression is BinaryExpression) {
             val lhs = interpret(expression.lhs).asInt().value
@@ -41,6 +46,9 @@ class Interpreter(
             return Value.of(itemValues)
         }
         if (expression is BoolLiteral) {
+            return Value.of(expression.value)
+        }
+        if (expression is StringLiteral) {
             return Value.of(expression.value)
         }
         if (expression is Identifier) {

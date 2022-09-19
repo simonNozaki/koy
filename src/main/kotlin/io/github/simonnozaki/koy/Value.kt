@@ -10,6 +10,8 @@ sealed class Value {
 
     fun asBool(): Bool = this as Bool
 
+    fun asString(): String = this as String
+
     data class Int(
         val value: kotlin.Int
     ) : Value()
@@ -22,6 +24,10 @@ sealed class Value {
         val value: Boolean
     ) : Value()
 
+    data class String(
+        val value: kotlin.String
+    ) : Value()
+
     companion object {
         /**
          * Factory method of sealed class `Value`.
@@ -31,6 +37,7 @@ sealed class Value {
                 is kotlin.Int -> Int(v)
                 is List<*> -> Array(v as List<Value>)
                 is Boolean -> Bool(v)
+                is kotlin.String -> String(v)
                 else -> throw RuntimeException("Type of $v can not convert")
             }
         }

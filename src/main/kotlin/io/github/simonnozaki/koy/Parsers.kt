@@ -2,7 +2,10 @@ package io.github.simonnozaki.koy
 
 import org.javafp.data.Unit
 import org.javafp.parsecj.Parser
-import org.javafp.parsecj.Text.*
+import org.javafp.parsecj.Text.string
+import org.javafp.parsecj.Text.wspace
+import org.javafp.parsecj.Text.regex
+import org.javafp.parsecj.Text.intr
 import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.Expression.*
 import org.javafp.parsecj.Combinators
@@ -45,11 +48,17 @@ object Parsers {
     private val RBRACE: Parser<Char, Unit> = string("}").then(SPACINGS)
     private val LBRACKET: Parser<Char, Unit> = string("[").then(SPACINGS)
     private val RBRACKET: Parser<Char, Unit> = string("]").then(SPACINGS)
+    private val D_QUOTE: Parser<Char, Unit> = string("\"").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
-    private val bool: Parser<Char, BoolLiteral> = TRUE.map { boolLiteral(true) }
-        .or(FALSE.map { boolLiteral(false) })
+    private val bool: Parser<Char, BoolLiteral> = TRUE.map { bool(true) }
+        .or(FALSE.map { bool(false) })
+    private val string: Parser<Char, StringLiteral> = D_QUOTE.bind {
+        regex(PATTERN_IDENTIFIER).bind { v ->
+            D_QUOTE.map { str(v) }
+        }
+    }
 
     /**
      * arrayLiteral <- '[' (expression(, expression)*)? ']'
@@ -292,6 +301,7 @@ object Parsers {
         }
             .or(integer)
             .or(bool)
+            .or(string)
             .or(functionCall())
             .or(labeledCall())
             .or(identifier())

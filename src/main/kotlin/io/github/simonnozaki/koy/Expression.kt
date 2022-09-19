@@ -13,6 +13,10 @@ sealed class Expression {
         val value: Boolean
     ) : Expression()
 
+    data class StringLiteral(
+        val value: String
+    ) : Expression()
+
     data class BinaryExpression(
         val operator: Operator,
         val lhs: Expression,
