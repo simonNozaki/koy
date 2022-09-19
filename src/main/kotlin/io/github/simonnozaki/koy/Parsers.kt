@@ -34,6 +34,8 @@ object Parsers {
     private val FOR: Parser<Char, Unit> = string("for").then(SPACINGS)
     private val IN: Parser<Char, Unit> = string("in").then(SPACINGS)
     private val TO: Parser<Char, Unit> = string("to").then(SPACINGS)
+    private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
+    private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
     private val SEMI_COLON: Parser<Char, Unit> = string(";").then(SPACINGS)
     private val EQ: Parser<Char, Unit> = string("=").then(SPACINGS)
@@ -45,12 +47,14 @@ object Parsers {
     private val RBRACKET: Parser<Char, Unit> = string("]").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
-    val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
+    private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
+    private val bool: Parser<Char, BoolLiteral> = TRUE.map { boolLiteral(true) }
+        .or(FALSE.map { boolLiteral(false) })
 
     /**
      * arrayLiteral <- '[' (expression(, expression)*)? ']'
      */
-    fun arrayLiteral(): Parser<Char, ArrayLiteral> {
+    private fun arrayLiteral(): Parser<Char, ArrayLiteral> {
         return LBRACKET.bind {
             expression().sepBy(COMMA).bind { params ->
                 RBRACKET.map { ArrayLiteral(params.toList()) }
@@ -275,6 +279,7 @@ object Parsers {
      * ```
      * primary <- '(' expression ')'
      *   / integer
+     *   / bool
      *   / functionCall
      *   / labeledCall
      *   / identifier
@@ -286,6 +291,7 @@ object Parsers {
             }
         }
             .or(integer)
+            .or(bool)
             .or(functionCall())
             .or(labeledCall())
             .or(identifier())

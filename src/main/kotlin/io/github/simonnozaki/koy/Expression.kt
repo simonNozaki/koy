@@ -9,6 +9,10 @@ sealed class Expression {
         val items: List<Expression>
     ) : Expression()
 
+    data class BoolLiteral(
+        val value: Boolean
+    ) : Expression()
+
     data class BinaryExpression(
         val operator: Operator,
         val lhs: Expression,

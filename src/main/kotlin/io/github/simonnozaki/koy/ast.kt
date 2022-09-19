@@ -32,6 +32,8 @@ fun notEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.NOT_E
 
 fun integer(value: Int): IntegerLiteral = IntegerLiteral(value)
 
+fun boolLiteral(value: Boolean) = BoolLiteral(value)
+
 fun Array(vararg expressions: Expression) = ArrayLiteral(expressions.toList())
 
 fun identifier(name: String) = Identifier(name)

@@ -4,10 +4,14 @@ import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.Expression.*
 
 // TODO add a printer of tree node for debug logging
+// TODO update runtime exception to custom exception
 class Interpreter(
     private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
     private var variableEnvironment: Environment = Environment(mutableMapOf(), null)
 ) {
+    /**
+     * Return the value from interpreter variable environment
+     */
     fun getValue(name: String) = variableEnvironment.bindings[name]
 
     fun interpret(expression: Expression): Value {
@@ -20,12 +24,12 @@ class Interpreter(
                 SUBTRACT -> lhs - rhs
                 MULTIPLY -> lhs * rhs
                 DIVIDE -> lhs / rhs
-                LESS_THAN -> if (lhs < rhs) 1 else 0
-                LESS_OR_EQUAL -> if (lhs <= rhs) 1 else 0
-                GREATER_THAN -> if (lhs > rhs) 1 else 0
-                GREATER_OR_EQUAL -> if (lhs >= rhs) 1 else 0
-                EQUAL -> if (lhs == rhs) 1 else 0
-                NOT_EQUAL -> if (lhs != rhs) 1 else 0
+                LESS_THAN -> lhs < rhs
+                LESS_OR_EQUAL -> lhs <= rhs
+                GREATER_THAN -> lhs > rhs
+                GREATER_OR_EQUAL -> lhs >= rhs
+                EQUAL -> lhs == rhs
+                NOT_EQUAL -> lhs != rhs
             }
             return Value.of(result)
         }
@@ -36,12 +40,13 @@ class Interpreter(
             val itemValues = expression.items.map { interpret(it) }
             return Value.of(itemValues)
         }
+        if (expression is BoolLiteral) {
+            return Value.of(expression.value)
+        }
         if (expression is Identifier) {
             // Get variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
-            val v = bindingOptions?.let { it[expression.name] } ?: throw RuntimeException("${expression.name} not found")
-
-            return v
+            return bindingOptions?.let { it[expression.name] } ?: throw RuntimeException("${expression.name} not found")
         }
         if (expression is Assignment) {
             // Assign variable
@@ -58,10 +63,8 @@ class Interpreter(
             return interpret(expression.arg)
         }
         if (expression is IfExpression) {
-            // TODO make condition as boolean
-            val condition = interpret(expression.condition).asInt().value
-            // 0 = false
-            return if (condition != 0) {
+            val condition = interpret(expression.condition).asBool().value
+            return if (condition) {
                 interpret(expression.thenClause)
             } else {
                 expression.elseClause?.let { interpret(it) } ?: Value.of(1)
@@ -69,23 +72,23 @@ class Interpreter(
         }
         if (expression is WhileExpression) {
             while (true) {
-                val condition = interpret(expression.condition).asInt().value
-                if (condition != 0) {
+                val condition = interpret(expression.condition).asBool().value
+                if (condition) {
                     interpret(expression.body)
                 } else {
                     break;
                 }
             }
-            return Value.of(1)
+            return Value.of(true)
         }
         if (expression is BlockExpression) {
             // Block expression: interpret some expression from the top
-            var v = 0
+            var v = Value.of(0)
             val iterator = expression.elements.iterator()
             while (iterator.hasNext()) {
-                v = interpret(iterator.next()).asInt().value
+                v = interpret(iterator.next())
             }
-            return  Value.of(v)
+            return  v
         }
         if (expression is FunctionCall) {
             val definition = functionEnvironment[expression.name] ?: throw RuntimeException("")
@@ -140,6 +143,9 @@ class Interpreter(
 
     private fun newEnvironment(next: Environment?): Environment = Environment(mutableMapOf(), next)
 
+    /**
+     * Execute `main` function. Throw runtime exception if a program has no `main` function.
+     */
     fun callMain(program: Program): Value {
         val topLevels = program.definitions
         for (topLevel in topLevels) {
