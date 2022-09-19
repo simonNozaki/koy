@@ -12,6 +12,10 @@ sealed class Value {
 
     fun asString(): String = this as String
 
+    fun isString(): Boolean = this is String
+
+    fun isInt(): Boolean = this is Int
+
     data class Int(
         val value: kotlin.Int
     ) : Value()

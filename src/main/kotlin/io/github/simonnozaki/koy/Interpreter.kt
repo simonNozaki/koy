@@ -4,7 +4,6 @@ import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.Expression.*
 
 // TODO add a printer of tree node for debug logging
-// TODO update runtime exception to custom exception
 class Interpreter(
     private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
     private var variableEnvironment: Environment = Environment(mutableMapOf(), null)
@@ -19,24 +18,36 @@ class Interpreter(
      */
     fun getVariables() = variableEnvironment.bindings.toMap()
 
+    private fun getBinaryOpsResult(binaryExpression: BinaryExpression): Value {
+        val lhs = interpret(binaryExpression.lhs)
+        val rhs = interpret(binaryExpression.rhs)
+
+        val result =  when(binaryExpression.operator) {
+            ADD -> {
+                if (lhs.isString() && rhs.isString()) {
+                    lhs.asString().value + rhs.asString().value
+                } else if (lhs.isInt() && rhs.isInt()) {
+                    lhs.asInt().value + rhs.asInt().value
+                } else {
+                    throw KoyLangRuntimeException("$lhs and $rhs is not compatible on add operation")
+                }
+            }
+            SUBTRACT -> lhs.asInt().value - rhs.asInt().value
+            MULTIPLY -> lhs.asInt().value * rhs.asInt().value
+            DIVIDE -> lhs.asInt().value / rhs.asInt().value
+            LESS_THAN -> lhs.asInt().value < rhs.asInt().value
+            LESS_OR_EQUAL -> lhs.asInt().value <= rhs.asInt().value
+            GREATER_THAN -> lhs.asInt().value > rhs.asInt().value
+            GREATER_OR_EQUAL -> lhs.asInt().value >= rhs.asInt().value
+            EQUAL -> lhs.asInt().value == rhs.asInt().value
+            NOT_EQUAL -> lhs.asInt().value != rhs.asInt().value
+        }
+        return Value.of(result)
+    }
+
     fun interpret(expression: Expression): Value {
         if (expression is BinaryExpression) {
-            val lhs = interpret(expression.lhs).asInt().value
-            val rhs = interpret(expression.rhs).asInt().value
-
-            val result =  when(expression.operator) {
-                ADD -> lhs + rhs
-                SUBTRACT -> lhs - rhs
-                MULTIPLY -> lhs * rhs
-                DIVIDE -> lhs / rhs
-                LESS_THAN -> lhs < rhs
-                LESS_OR_EQUAL -> lhs <= rhs
-                GREATER_THAN -> lhs > rhs
-                GREATER_OR_EQUAL -> lhs >= rhs
-                EQUAL -> lhs == rhs
-                NOT_EQUAL -> lhs != rhs
-            }
-            return Value.of(result)
+            return getBinaryOpsResult(expression)
         }
         if (expression is IntegerLiteral) {
             return Value.of(expression.value)
@@ -54,7 +65,7 @@ class Interpreter(
         if (expression is Identifier) {
             // Get variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
-            return bindingOptions?.let { it[expression.name] } ?: throw RuntimeException("${expression.name} not found")
+            return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("${expression.name} not found")
         }
         if (expression is Assignment) {
             // Assign variable
@@ -75,7 +86,7 @@ class Interpreter(
             return if (condition) {
                 interpret(expression.thenClause)
             } else {
-                expression.elseClause?.let { interpret(it) } ?: Value.of(1)
+                expression.elseClause?.let { interpret(it) } ?: Value.of(true)
             }
         }
         if (expression is WhileExpression) {
@@ -99,7 +110,7 @@ class Interpreter(
             return  v
         }
         if (expression is FunctionCall) {
-            val definition = functionEnvironment[expression.name] ?: throw RuntimeException("")
+            val definition = functionEnvironment[expression.name] ?: throw KoyLangRuntimeException("Function ${expression.name} not found")
 
             val actualParams = expression.args
             val formalParams = definition.args
@@ -120,7 +131,7 @@ class Interpreter(
         }
         if (expression is LabeledCall) {
             val definition = functionEnvironment[expression.name]
-                ?: throw RuntimeException("Function ${expression.name} is not defined.")
+                ?: throw KoyLangRuntimeException("Function ${expression.name} is not defined.")
             // Calling parameter map: label name -> param
             // e.g. f([x=1, y=2]) -> { x: 1, y: 2 }
             val labelMappings = expression.args.associate { it.name to it.parameter }
@@ -130,7 +141,7 @@ class Interpreter(
             val actualParams = mutableListOf<Expression>()
             // Get actual parameters from labeled parameters map, so throw exception on failed to get value from mappings
             for (param in formalParams) {
-                val e = labelMappings[param] ?: throw RuntimeException("Parameter ${labelMappings[param]} is not defined in ${expression.name}")
+                val e = labelMappings[param] ?: throw KoyLangRuntimeException("Parameter ${labelMappings[param]} is not defined in ${expression.name}")
                 actualParams.add(e)
             }
             val values = actualParams.map { interpret(it) }
@@ -146,7 +157,7 @@ class Interpreter(
             variableEnvironment = backup
             return result
         }
-        throw RuntimeException("")
+        throw KoyLangRuntimeException("Expression $expression can not be parsed.")
     }
 
     private fun newEnvironment(next: Environment?): Environment = Environment(mutableMapOf(), next)
@@ -167,7 +178,7 @@ class Interpreter(
         return if (mainFunction != null) {
             interpret(mainFunction.body)
         } else {
-            throw RuntimeException("This program should have main() function.")
+            throw KoyLangRuntimeException("This program should have main() function.")
         }
     }
 }
