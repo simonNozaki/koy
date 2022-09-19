@@ -1,7 +1,7 @@
-package io.github.simonnozaki.koys
+package io.github.simonnozaki.koy
 
-import io.github.simonnozaki.koys.Operator.*
-import io.github.simonnozaki.koys.Expression.*
+import io.github.simonnozaki.koy.Operator.*
+import io.github.simonnozaki.koy.Expression.*
 
 // TODO add a printer of tree node for debug logging
 class Interpreter(
@@ -10,12 +10,12 @@ class Interpreter(
 ) {
     fun getValue(name: String) = variableEnvironment.bindings[name]
 
-    fun interpret(expression: Expression): Int {
+    fun interpret(expression: Expression): Value {
         if (expression is BinaryExpression) {
-            val lhs = interpret(expression.lhs)
-            val rhs = interpret(expression.rhs)
+            val lhs = interpret(expression.lhs).asInt().value
+            val rhs = interpret(expression.rhs).asInt().value
 
-            return when(expression.operator) {
+            val result =  when(expression.operator) {
                 ADD -> lhs + rhs
                 SUBTRACT -> lhs - rhs
                 MULTIPLY -> lhs * rhs
@@ -27,14 +27,21 @@ class Interpreter(
                 EQUAL -> if (lhs == rhs) 1 else 0
                 NOT_EQUAL -> if (lhs != rhs) 1 else 0
             }
+            return Value.of(result)
         }
         if (expression is IntegerLiteral) {
-            return expression.value
+            return Value.of(expression.value)
+        }
+        if (expression is ArrayLiteral) {
+            val itemValues = expression.items.map { interpret(it) }
+            return Value.of(itemValues)
         }
         if (expression is Identifier) {
             // Get variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
-            return bindingOptions?.let { it[expression.name] } ?: throw RuntimeException("")
+            val v = bindingOptions?.let { it[expression.name] } ?: throw RuntimeException("${expression.name} not found")
+
+            return v
         }
         if (expression is Assignment) {
             // Assign variable
@@ -51,33 +58,34 @@ class Interpreter(
             return interpret(expression.arg)
         }
         if (expression is IfExpression) {
-            val condition = interpret(expression.condition)
+            // TODO make condition as boolean
+            val condition = interpret(expression.condition).asInt().value
             // 0 = false
             return if (condition != 0) {
                 interpret(expression.thenClause)
             } else {
-                expression.elseClause?.let { interpret(it) } ?: 1
+                expression.elseClause?.let { interpret(it) } ?: Value.of(1)
             }
         }
         if (expression is WhileExpression) {
             while (true) {
-                val condition = interpret(expression.condition)
+                val condition = interpret(expression.condition).asInt().value
                 if (condition != 0) {
                     interpret(expression.body)
                 } else {
                     break;
                 }
             }
-            return 1
+            return Value.of(1)
         }
         if (expression is BlockExpression) {
             // Block expression: interpret some expression from the top
             var v = 0
             val iterator = expression.elements.iterator()
             while (iterator.hasNext()) {
-                v = interpret(iterator.next())
+                v = interpret(iterator.next()).asInt().value
             }
-            return  v
+            return  Value.of(v)
         }
         if (expression is FunctionCall) {
             val definition = functionEnvironment[expression.name] ?: throw RuntimeException("")
@@ -132,7 +140,7 @@ class Interpreter(
 
     private fun newEnvironment(next: Environment?): Environment = Environment(mutableMapOf(), next)
 
-    fun callMain(program: Program): Int {
+    fun callMain(program: Program): Value {
         val topLevels = program.definitions
         for (topLevel in topLevels) {
             when (topLevel) {

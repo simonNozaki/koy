@@ -1,8 +1,12 @@
-package io.github.simonnozaki.koys
+package io.github.simonnozaki.koy
 
 sealed class Expression {
     data class IntegerLiteral(
         val value: Int
+    ) : Expression()
+
+    data class ArrayLiteral(
+        val items: List<Expression>
     ) : Expression()
 
     data class BinaryExpression(

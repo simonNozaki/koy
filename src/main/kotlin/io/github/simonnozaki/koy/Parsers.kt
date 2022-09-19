@@ -1,10 +1,10 @@
-package io.github.simonnozaki.koys
+package io.github.simonnozaki.koy
 
 import org.javafp.data.Unit
 import org.javafp.parsecj.Parser
 import org.javafp.parsecj.Text.*
 import java.util.function.BinaryOperator
-import io.github.simonnozaki.koys.Expression.*
+import io.github.simonnozaki.koy.Expression.*
 import org.javafp.parsecj.Combinators
 
 /**
@@ -26,7 +26,7 @@ object Parsers {
     private val GT: Parser<Char, Unit> = string(">").then(SPACINGS)
     private val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
     private val GLOBAL: Parser<Char, Unit> = string("global").then(SPACINGS)
-    private val DEFINE: Parser<Char, Unit> = string("define").then(SPACINGS)
+    private val DEFINE: Parser<Char, Unit> = string("fn").then(SPACINGS)
     private val PRINTLN: Parser<Char, Unit> = string("println").then(SPACINGS)
     private val IF: Parser<Char, Unit> = string("if").then(SPACINGS)
     private val ELSE: Parser<Char, Unit> = string("else").then(SPACINGS)
@@ -46,6 +46,17 @@ object Parsers {
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
+
+    /**
+     * arrayLiteral <- '[' (expression(, expression)*)? ']'
+     */
+    fun arrayLiteral(): Parser<Char, ArrayLiteral> {
+        return LBRACKET.bind {
+            expression().sepBy(COMMA).bind { params ->
+                RBRACKET.map { ArrayLiteral(params.toList()) }
+            }
+        }
+    }
 
     /**
      * ```
@@ -278,6 +289,7 @@ object Parsers {
             .or(functionCall())
             .or(labeledCall())
             .or(identifier())
+            .or(arrayLiteral())
     }
 
     /**

@@ -1,4 +1,4 @@
-package io.github.simonnozaki.koys
+package io.github.simonnozaki.koy
 
 enum class Operator(
     val value: String

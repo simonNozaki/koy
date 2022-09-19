@@ -1,6 +1,6 @@
-package io.github.simonnozaki.koys
+package io.github.simonnozaki.koy
 
-import io.github.simonnozaki.koys.Expression.*
+import io.github.simonnozaki.koy.Expression.*
 
 fun add(lhs: Expression, rhs: Expression): BinaryExpression {
     return BinaryExpression(Operator.ADD, lhs, rhs)
@@ -32,6 +32,8 @@ fun notEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.NOT_E
 
 fun integer(value: Int): IntegerLiteral = IntegerLiteral(value)
 
+fun Array(vararg expressions: Expression) = ArrayLiteral(expressions.toList())
+
 fun identifier(name: String) = Identifier(name)
 
 fun assign(name: String, expression: Expression) = Assignment(name, expression)
@@ -42,20 +44,18 @@ fun call(name: String, vararg expressions: Expression): FunctionCall = FunctionC
 
 fun Println(expression: Expression) = PrintLn(expression)
 
-fun whileExpression(condition: Expression, body: Expression) = WhileExpression(condition, body)
-
 fun defineFunction(name: String, args: List<String>, body: Expression) = FunctionDefinition(name, args, body)
 
 fun If(
     condition: Expression,
     thenClause: Expression,
     elseClause: Expression?
-): IfExpression = If(condition, thenClause, elseClause)
+): IfExpression = IfExpression(condition, thenClause, elseClause)
 
 fun If(
     condition: Expression,
     thenClause: Expression
-): IfExpression = If(condition, thenClause, null)
+): IfExpression = IfExpression(condition, thenClause, null)
 
 fun While(condition: Expression, body: Expression) = WhileExpression(condition, body)
 
@@ -64,14 +64,14 @@ data class Program(
 )
 
 data class Environment(
-    val bindings: MutableMap<String, Int>,
+    val bindings: MutableMap<String, Value>,
     val next: Environment?
 ) {
     /**
      * Get values map from variable name along to `Environment` chaining
      * @param name
      */
-    fun findBindings(name: String): MutableMap<String, Int>? {
+    fun findBindings(name: String): MutableMap<String, Value>? {
         if (bindings[name] != null) {
             return bindings
         }

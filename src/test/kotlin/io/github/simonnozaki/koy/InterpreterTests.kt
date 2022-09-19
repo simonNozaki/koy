@@ -1,8 +1,8 @@
-package io.github.simonnozaki.koys
+package io.github.simonnozaki.koy
 
 import org.junit.jupiter.api.Test
 
-import io.github.simonnozaki.koys.Expression.*
+import io.github.simonnozaki.koy.Expression.*
 import kotlin.test.assertEquals
 
 /**
@@ -16,7 +16,7 @@ class InterpreterTests {
         val expression = add(
             IntegerLiteral(10), IntegerLiteral(20)
         )
-        val result = interpreter.interpret(expression)
+        val result = interpreter.interpret(expression).asInt().value
         assertEquals(30, result)
     }
 
@@ -29,7 +29,7 @@ class InterpreterTests {
             IntegerLiteral(10)
         )
 
-        val result = interpreter.interpret(expression)
+        val result = interpreter.interpret(expression).asInt().value
 
         assertEquals(25, result)
     }
@@ -61,7 +61,7 @@ class InterpreterTests {
 
         val result = interpreter.callMain(Program(topLevels))
 
-        assertEquals(30, result)
+        assertEquals(30, result.asInt().value)
     }
 
     @Test
@@ -75,7 +75,7 @@ class InterpreterTests {
             // }
             defineFunction("factorial", listOf("v"), Block(
                 If(
-                    lessThan(identifier("n"), integer(2)),
+                    lessThan(identifier("v"), integer(2)),
                     integer(1),
                     multiply(
                         call("factorial", subtract(identifier("v"), integer(1))),
@@ -93,7 +93,7 @@ class InterpreterTests {
 
         val result = interpreter.callMain(Program(topLevels))
 
-        assertEquals(120, result)
+        assertEquals(120, result.asInt().value)
     }
 
     @Test
@@ -112,6 +112,16 @@ class InterpreterTests {
         for (statement in statements) {
             interpreter.interpret(statement)
         }
-        assertEquals(10, interpreter.getValue("i"))
+        assertEquals(10, interpreter.getValue("i")?.asInt()?.value)
+    }
+
+    @Test
+    fun can_define_array_literal() {
+        // a = [1, 3, 5]
+        val statement = assign("a", Array(IntegerLiteral(1), IntegerLiteral(3), IntegerLiteral(5)))
+        interpreter.interpret(statement)
+
+        val arrayItems = interpreter.getValue("a")?.asArray()
+        assertEquals(3, arrayItems?.items?.size)
     }
 }

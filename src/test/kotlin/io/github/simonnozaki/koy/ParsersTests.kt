@@ -1,4 +1,4 @@
-package io.github.simonnozaki.koys
+package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
 import org.junit.jupiter.api.Test
@@ -9,10 +9,10 @@ class ParsersTests {
     fun can_define_and_call_function() {
         val interpreter = Interpreter()
         val source = """
-            define add(n, m) {
+            fn add(n, m) {
               n + m;
             }
-            define main() {
+            fn main() {
               add(1, 2);
             }
         """
@@ -21,7 +21,7 @@ class ParsersTests {
             .result
         val result = interpreter.callMain(program)
 
-        assertEquals(3, result)
+        assertEquals(3, result.asInt().value)
     }
 
     @Test
@@ -40,7 +40,7 @@ class ParsersTests {
         }
         println(statements)
 
-        assertEquals(10, interpreter.getValue("i"))
+        assertEquals(10, interpreter.getValue("i")?.asInt()?.value)
     }
 
     @Test
@@ -58,7 +58,7 @@ class ParsersTests {
         for (statement in statements) {
             interpreter.interpret(statement)
         }
-        assertEquals(0, interpreter.getValue("x"))
+        assertEquals(0, interpreter.getValue("x")?.asInt()?.value)
     }
 
     @Test
@@ -67,11 +67,11 @@ class ParsersTests {
         val source = """
             global x = 10;
             
-            define print(v) {
+            fn print(v) {
               println(v);
             }
             
-            define main() {
+            fn main() {
               print(x + 2);
             }
         """
@@ -80,24 +80,24 @@ class ParsersTests {
 
         val result = interpreter.callMain(program)
 
-        assertEquals(12, result)
-        assertEquals(10, interpreter.getValue("x"))
+        assertEquals(12, result.asInt().value)
+        assertEquals(10, interpreter.getValue("x")?.asInt()?.value)
     }
 
     @Test
     fun can_call_labeled_function_call() {
         val source = """
-            define power(n) {
+            fn power(n) {
               n * n;
             }
             
-            define main() {
+            fn main() {
               power[n=5];
             }
         """
         val program = Parsers.program().parse(Input.of(source)).result
         val result = Interpreter().callMain(program)
 
-        assertEquals(25, result)
+        assertEquals(25, result.asInt().value)
     }
 }
