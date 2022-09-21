@@ -19,7 +19,7 @@ object Parsers {
      * after 2nd: alphabet + number + _
      */
     private const val PATTERN_IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*"
-    private const val PATTERN_STRING_LITERAL = "[a-zA-Z_][a-zA-Z0-9_]*"
+    private const val PATTERN_STRING_LITERAL = "[a-zA-Z_][a-zA-Z0-9_, ]*"
 
     private val SPACING: Parser<Char, Unit> = wspace.map { Unit.unit }.or(regex("(?m)//.*$").map { Unit.unit })
     private val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
@@ -59,14 +59,11 @@ object Parsers {
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
     private val bool: Parser<Char, BoolLiteral> = TRUE.map { bool(true) }
         .or(FALSE.map { bool(false) })
-    // TODO string literal joining broken...
     private val string: Parser<Char, StringLiteral> = D_QUOTE.bind {
         regex(PATTERN_STRING_LITERAL).bind { v ->
-            D_QUOTE.map { str(v) }.bind { s ->
-                SPACINGS.map { s }
-            }
+            D_QUOTE.map { str(v) }
         }
-    }
+    }.bind { v -> SPACINGS.map { v } }
 
     /**
      * arrayLiteral <- '[' (expression(, expression)*)? ']'

@@ -15,7 +15,7 @@ fun main() {
     val linesSource = """
     lang = "koy";
     msg = "Hello";
-    lang + msg;
+    println(lang + msg);
     """.trimIndent()
     Parsers.lines()
         .parse(Input.of(linesSource))
@@ -27,11 +27,11 @@ fun main() {
 
     val programSource = """
     fn greet(message) {
-      message;
+      "Hello, " + message;
     }
     
     fn main() {
-      r = "Hello, " + "Koy";
+      r = greet("Koy");
     }
     """.trimIndent()
     val program = Parsers.program().parse(Input.of(programSource))
