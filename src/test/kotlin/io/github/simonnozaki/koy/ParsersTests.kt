@@ -77,7 +77,7 @@ class ParsersTests {
         fun should_print_compound_greet() {
             val source = """
             fn greet(msg) {
-              "Hello;"
+              "Hello " + msg;
             }
             
             fn main() {
