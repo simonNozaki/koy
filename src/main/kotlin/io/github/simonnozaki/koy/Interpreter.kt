@@ -62,6 +62,12 @@ class Interpreter(
         if (expression is StringLiteral) {
             return Value.of(expression.value)
         }
+        if (expression is ObjectLiteral) {
+            // Evaluate each props value and get `Value`
+            val propertiesMap = expression.properties.entries.associate { it.key to interpret(it.value) }
+            return Value.ofObject(propertiesMap)
+        }
+        // TODO add function literal
         if (expression is Identifier) {
             // Get variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)

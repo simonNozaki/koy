@@ -3,6 +3,7 @@ package io.github.simonnozaki.koy
 import org.junit.jupiter.api.Test
 
 import io.github.simonnozaki.koy.Expression.*
+import io.github.simonnozaki.koy.Object
 import kotlin.test.assertEquals
 
 /**
@@ -123,5 +124,20 @@ class InterpreterTests {
 
         val arrayItems = interpreter.getValue("a")?.asArray()
         assertEquals(3, arrayItems?.items?.size)
+    }
+
+    @Test
+    fun can_evaluate_object() {
+        val interpreter = Interpreter()
+        // o = { a: 1, b: "1" }
+        val statement = assign("o", Object(mapOf(
+            "a" to integer(1),
+            "b" to str("1")
+        )))
+        interpreter.interpret(statement)
+        val o = interpreter.getValue("o")?.asObject()?.value
+
+        assertEquals(1, o?.get("a")?.asInt()?.value)
+        assertEquals("1", o?.get("b")?.asString()?.value)
     }
 }

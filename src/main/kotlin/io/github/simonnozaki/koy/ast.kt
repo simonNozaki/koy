@@ -36,6 +36,8 @@ fun bool(value: Boolean) = BoolLiteral(value)
 
 fun Array(vararg expressions: Expression) = ArrayLiteral(expressions.toList())
 
+fun Object(properties: Map<String, Expression>) = ObjectLiteral(properties)
+
 fun str(value: String) = StringLiteral(value)
 
 fun identifier(name: String) = Identifier(name)

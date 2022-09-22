@@ -12,6 +12,8 @@ sealed class Value {
 
     fun asString(): String = this as String
 
+    fun asObject(): Object = this as Object
+
     fun isString(): Boolean = this is String
 
     fun isInt(): Boolean = this is Int
@@ -32,6 +34,10 @@ sealed class Value {
         val value: kotlin.String
     ) : Value()
 
+    data class Object(
+        val value: Map<kotlin.String, Value>
+    ) : Value()
+
     companion object {
         /**
          * Factory method of sealed class `Value`.
@@ -45,5 +51,7 @@ sealed class Value {
                 else -> throw RuntimeException("Type of $v can not convert")
             }
         }
+
+        fun ofObject(v: Map<kotlin.String, Value>) = Object(v)
     }
 }

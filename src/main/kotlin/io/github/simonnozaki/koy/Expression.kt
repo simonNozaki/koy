@@ -17,6 +17,10 @@ sealed class Expression {
         val value: String
     ) : Expression()
 
+    data class ObjectLiteral(
+        val properties: Map<String, Expression>
+    ) : Expression()
+
     data class BinaryExpression(
         val operator: Operator,
         val lhs: Expression,
