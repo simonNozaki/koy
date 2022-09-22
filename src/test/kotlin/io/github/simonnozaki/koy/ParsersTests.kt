@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 /**
  * Parsers Tests
@@ -185,15 +186,15 @@ class ParsersTests {
             val interpreter = Interpreter()
             val source = """
             t = true;
-            f = false;
+            a = false;
             """.trimIndent()
             val statements = Parsers.lines().parse(Input.of(source)).result
             statements.forEach { interpreter.interpret(it) }
             val t = interpreter.getValue("t")?.asBool()?.value
-            val f = interpreter.getValue("f")?.asBool()?.value
+            val a = interpreter.getValue("a")?.asBool()?.value
 
             assertEquals(true, t)
-            assertEquals(false, f)
+            assertEquals(false, a)
         }
 
         @Test
@@ -221,10 +222,17 @@ class ParsersTests {
         }
 
         @Test
+        fun is_false_literal() {
+            val expression = Parsers.expression().parse(Input.of("false")).result
+            val result = Interpreter().interpret(expression)
+            assertFalse(result.asBool().value)
+        }
+
+        @Test
         fun should_be_string_literal() {
             val expression = Parsers.expression().parse(Input.of("\"text\"")).result
             val result = Interpreter().interpret(expression)
-            assertEquals("string", result.asString().value)
+            assertEquals("text", result.asString().value)
         }
     }
 }
