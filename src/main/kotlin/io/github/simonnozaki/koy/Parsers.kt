@@ -10,16 +10,17 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.Expression.*
 import org.javafp.parsecj.Combinators
 
-/**
- * Syntax Parser
- */
+
+// TODO anonymous function definition for object literal properties
+// TODO property call by dot operator as method call
+// TODO comment out
 object Parsers {
     /**
      * 1st: alphabet + _
      * after 2nd: alphabet + number + _
      */
     private const val PATTERN_IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*"
-    private const val PATTERN_STRING_LITERAL = "[a-zA-Z_][a-zA-Z0-9_, ]*"
+    private const val PATTERN_STRING_LITERAL = "[a-zA-Z0-9][a-zA-Z0-9_, ]*"
 
     private val SPACING: Parser<Char, Unit> = wspace.map { Unit.unit }.or(regex("(?m)//.*$").map { Unit.unit })
     private val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
@@ -34,7 +35,7 @@ object Parsers {
     private val GT: Parser<Char, Unit> = string(">").then(SPACINGS)
     private val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
     private val GLOBAL: Parser<Char, Unit> = string("global").then(SPACINGS)
-    private val DEFINE: Parser<Char, Unit> = string("fn").then(SPACINGS)
+    private val FN: Parser<Char, Unit> = string("fn").then(SPACINGS)
     private val PRINTLN: Parser<Char, Unit> = string("println").then(SPACINGS)
     private val IF: Parser<Char, Unit> = string("if").then(SPACINGS)
     private val ELSE: Parser<Char, Unit> = string("else").then(SPACINGS)
@@ -45,6 +46,7 @@ object Parsers {
     private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
     private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
+    private val COLON: Parser<Char, Unit> = string(":").then(SPACINGS)
     private val SEMI_COLON: Parser<Char, Unit> = string(";").then(SPACINGS)
     private val EQ: Parser<Char, Unit> = string("=").then(SPACINGS)
     private val LPAREN: Parser<Char, Unit> = string("(").then(SPACINGS)
@@ -54,11 +56,13 @@ object Parsers {
     private val LBRACKET: Parser<Char, Unit> = string("[").then(SPACINGS)
     private val RBRACKET: Parser<Char, Unit> = string("]").then(SPACINGS)
     private val D_QUOTE: Parser<Char, Unit> = string("\"").then(SPACINGS)
+    private val ARROW: Parser<Char, Unit> = string("->").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
     private val bool: Parser<Char, BoolLiteral> = TRUE.map { bool(true) }
         .or(FALSE.map { bool(false) })
+        .bind { v -> SPACINGS.map { v } }
     private val string: Parser<Char, StringLiteral> = D_QUOTE.bind {
         regex(PATTERN_STRING_LITERAL).bind { v ->
             D_QUOTE.map { str(v) }
@@ -78,7 +82,7 @@ object Parsers {
 
     /**
      * ```
-     * println <- println '(' expression ')'
+     * println <- println '(' expression ')' ';'
      * ```
      */
     fun println(): Parser<Char, Expression> {
@@ -191,11 +195,13 @@ object Parsers {
     }
 
     /**
+     * ```
      * functionDefinition <-
-     *   'define' identifier '(' (identifier (',' identifier)*)? ')' blockExpression;
+     *   'fn' identifier '(' (identifier (',' identifier)*)? ')' blockExpression;
+     * ```
      */
     private fun functionDefinition(): Parser<Char, FunctionDefinition> {
-        val defName = DEFINE.then(IDENT)
+        val defName = FN.then(IDENT)
         val defArgs = IDENT.sepBy(COMMA).between(LPAREN, RPAREN)
 
         return defName.bind { name ->
@@ -297,9 +303,13 @@ object Parsers {
      * primary <- '(' expression ')'
      *   / integer
      *   / bool
+     *   / string
      *   / functionCall
      *   / labeledCall
      *   / identifier
+     *   / arrayLiteral
+     *   / objectLiteral
+     *   / functionLiteral
      * ```
      */
     private fun primary(): Parser<Char, Expression> {
