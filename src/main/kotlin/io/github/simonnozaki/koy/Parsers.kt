@@ -82,6 +82,41 @@ object Parsers {
 
     /**
      * ```
+     * objectLiteral <- '{' (identifier ':' expression (,identifier ':' expression*)? '}'
+     * ```
+     */
+    // TODO check prop names duplication
+    private fun objectLiteral(): Parser<Char, ObjectLiteral> {
+        return IDENT.bind { propName ->
+            COLON.then(expression()).map { e -> propName to e }
+        }
+            .sepBy(COMMA)
+            .between(LBRACE, RBRACE)
+            .map {
+                val properties = it.toList().associate { p -> p.first to p.second }
+                ObjectLiteral(properties)
+            }
+    }
+
+    /**
+     * ```
+     * functionLiteral <- '{' '(' (identifier(, identifier)*)? ')' '->' expression '}'
+     * ```
+     */
+    fun functionLiteral(): Parser<Char, FunctionLiteral> {
+        return LBRACE.bind {
+            IDENT.sepBy(COMMA).bind { params ->
+                ARROW.then(line().many()).bind { expressions ->
+                    RBRACE.map {
+                        FunctionLiteral(params.toList(), expressions.toList())
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * ```
      * println <- println '(' expression ')' ';'
      * ```
      */
@@ -324,6 +359,8 @@ object Parsers {
             .or(labeledCall())
             .or(identifier())
             .or(arrayLiteral())
+            .or(functionLiteral())
+            .or(objectLiteral())
     }
 
     /**

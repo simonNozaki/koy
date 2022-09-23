@@ -13,6 +13,10 @@ class Interpreter(
      */
     fun getValue(name: String) = variableEnvironment.bindings[name]
 
+    fun getFunction(name: String) = functionEnvironment[name]
+
+    fun getFunctions() = functionEnvironment
+
     /**
      * Return all variables and nodes of syntax tree from environment.
      */
@@ -67,11 +71,13 @@ class Interpreter(
             val propertiesMap = expression.properties.entries.associate { it.key to interpret(it.value) }
             return Value.ofObject(propertiesMap)
         }
-        // TODO add function literal
+        if (expression is FunctionLiteral) {
+            return Value.ofFunction(expression.args, expression.lines)
+        }
         if (expression is Identifier) {
             // Get variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
-            return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("${expression.name} not found")
+            return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
         }
         if (expression is Assignment) {
             // Assign variable
@@ -80,6 +86,14 @@ class Interpreter(
             if (bindingOptions != null) {
                 bindingOptions[expression.name] = value
             } else {
+                // Function literal is assigned as `FunctionDefinition`, so check value type if is `Value.Function`.
+                when (value) {
+                    is Value.Function -> {
+                        val def = defineFunction(expression.name, value.args, BlockExpression(value.lines))
+                        functionEnvironment[expression.name] = def
+                    }
+                    else -> variableEnvironment.bindings[expression.name] = value
+                }
                 variableEnvironment.bindings[expression.name] = value
             }
             return value

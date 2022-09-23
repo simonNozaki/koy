@@ -49,6 +49,7 @@ class ParsersTests {
             }
             """
             val program = Parsers.program().parse(Input.of(source)).result
+            println(interpreter.getFunctions())
             println(program)
 
             val result = interpreter.callMain(program)
@@ -209,6 +210,18 @@ class ParsersTests {
 
             assertEquals("text", interpreter.getValue("t")?.asString()?.value)
         }
+
+        @Test
+        fun `can assign function literal to variable`() {
+            val interpreter = Interpreter()
+            val source = """
+            a = { x, y ->
+              x * y;
+            }
+            """.trimIndent()
+            val statements = Parsers.lines().parse(Input.of(source)).result
+            statements.forEach { interpreter.interpret(it) }
+        }
     }
 
     @Nested
@@ -233,6 +246,35 @@ class ParsersTests {
             val expression = Parsers.expression().parse(Input.of("\"text\"")).result
             val result = Interpreter().interpret(expression)
             assertEquals("text", result.asString().value)
+        }
+
+        @Test
+        fun `can define object literal`() {
+            val expression = Parsers.expression()
+                .parse(Input.of("{a : 1, b: \"1\"}"))
+                .result
+            val result = Interpreter().interpret(expression)
+            assertEquals(1, result.asObject().value["a"]?.asInt()?.value)
+            assertEquals("1", result.asObject().value["b"]?.asString()?.value)
+        }
+
+        @Test
+        fun `can define function literal`() {
+            val interpreter = Interpreter()
+            val source = """
+            { x, y ->
+              x * y;
+            }
+            """.trimIndent()
+            val expression = Parsers.functionLiteral().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+            when (result) {
+                is Value.Function -> {
+                    kotlin.test.assertTrue(result.args.containsAll(listOf("x")))
+                    assertTrue(result.lines[0] is Expression.BinaryExpression)
+                }
+                else -> throw RuntimeException()
+            }
         }
     }
 }

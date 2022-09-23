@@ -38,6 +38,11 @@ sealed class Value {
         val value: Map<kotlin.String, Value>
     ) : Value()
 
+    data class Function(
+        val args: List<kotlin.String>,
+        val lines: List<Expression>
+    ): Value()
+
     companion object {
         /**
          * Factory method of sealed class `Value`.
@@ -53,5 +58,7 @@ sealed class Value {
         }
 
         fun ofObject(v: Map<kotlin.String, Value>) = Object(v)
+
+        fun ofFunction(args: List<kotlin.String>, lines: List<Expression>) = Function(args, lines)
     }
 }

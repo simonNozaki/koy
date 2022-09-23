@@ -3,7 +3,6 @@ package io.github.simonnozaki.koy
 import org.junit.jupiter.api.Test
 
 import io.github.simonnozaki.koy.Expression.*
-import io.github.simonnozaki.koy.Object
 import kotlin.test.assertEquals
 
 /**
@@ -139,5 +138,31 @@ class InterpreterTests {
 
         assertEquals(1, o?.get("a")?.asInt()?.value)
         assertEquals("1", o?.get("b")?.asString()?.value)
+    }
+
+    @Test
+    fun `can define function literal`() {
+        val interpreter = Interpreter()
+        // f = { x, y ->
+        //   x+y;
+        // };
+        val statement = assign(
+            "f",
+            FunctionLiteral(
+                listOf("x", "y"),
+                listOf(
+                    add(identifier("x"), identifier("y"))
+                )
+            )
+        )
+        interpreter.interpret(statement)
+        val f = interpreter.getFunction("f")
+        println(f)
+
+        assertEquals("f", f?.name)
+        assertEquals(true, f?.args?.containsAll(listOf(
+            "x",
+            "y"
+        )))
     }
 }

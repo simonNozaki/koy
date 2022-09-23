@@ -21,6 +21,11 @@ sealed class Expression {
         val properties: Map<String, Expression>
     ) : Expression()
 
+    data class FunctionLiteral(
+        val args: List<String>,
+        val lines: List<Expression>
+    ) : Expression()
+
     data class BinaryExpression(
         val operator: Operator,
         val lhs: Expression,
