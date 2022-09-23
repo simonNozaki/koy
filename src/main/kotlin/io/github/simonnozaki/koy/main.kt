@@ -1,13 +1,6 @@
 package io.github.simonnozaki.koy
 
-import org.javafp.data.Unit
-import org.javafp.parsecj.Parser
-import org.javafp.parsecj.Text
 import org.javafp.parsecj.input.Input
-
-val SPACING: Parser<Char, Unit> = Text.wspace.map { Unit.unit }.or(Text.regex("(?m)//.*$").map { Unit.unit })
-val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
-val D_QUOTE: Parser<Char, Unit> = Text.string("\"").then(SPACINGS)
 
 fun main() {
     val interpreter = Interpreter()
@@ -16,6 +9,12 @@ fun main() {
     lang = "koy";
     msg = "Hello";
     println(lang + msg);
+    
+    object = {
+      name: "koy",
+      influencedBy: ["Toys", "JavaScript", "Kotlin"]
+    };
+    println(object);
     """.trimIndent()
     Parsers.lines()
         .parse(Input.of(linesSource))
