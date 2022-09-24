@@ -104,8 +104,8 @@ class ParsersTests {
             i = 0;
             while(i < 10) {
               i = i + 1;
-            }            
-        """.trimIndent()
+            }
+            """.trimIndent()
             val statements = Parsers.lines().parse(Input.of(program)).result
             for (statement in statements) {
                 interpreter.interpret(statement)
@@ -175,11 +175,16 @@ class ParsersTests {
             val arr = interpreter.getValue("odd")?.asArray()?.items
 
             assertEquals(3, arr?.size)
-            assertEquals(true, arr?.containsAll(listOf(
-                Value.of(1),
-                Value.of(3),
-                Value.of(5)
-            )))
+            assertEquals(
+                true,
+                arr?.containsAll(
+                    listOf(
+                        Value.of(1),
+                        Value.of(3),
+                        Value.of(5)
+                    )
+                )
+            )
         }
 
         @Test
@@ -200,27 +205,45 @@ class ParsersTests {
 
         @Test
         fun can_print_string() {
+            val interpreter = Interpreter()
             val source = """
             t = "text";
             """.trimIndent()
             val statements = Parsers.lines().parse(Input.of(source)).result
             println(statements)
-            val interpreter = Interpreter()
             statements.forEach { interpreter.interpret(it) }
 
             assertEquals("text", interpreter.getValue("t")?.asString()?.value)
         }
 
         @Test
-        fun `can assign function literal to variable`() {
-            val interpreter = Interpreter()
+        fun `can assign and call object literal`() {
             val source = """
-            a = { x, y ->
-              x * y;
-            }
+            o = {
+              id: 1,
+              title: "Get ready to meeting"
+            };
+            """.trimIndent()
+            val statements = Parsers.lines().parse(Input.of(source)).result
+            val interpreter = Interpreter()
+            statements.forEach { interpreter.interpret(it) }
+
+            assertEquals(1, interpreter.getValue("o")?.asObject()?.value?.get("id")?.asInt()?.value)
+        }
+
+        @Test
+        fun `can assign function literal with no parameter to variable`() {
+            val interpreter = Interpreter()
+            // Lambda unused parameter is shortcuttable
+            val source = """
+            l = x -> {
+              "Hello, Lambda";
+            };
             """.trimIndent()
             val statements = Parsers.lines().parse(Input.of(source)).result
             statements.forEach { interpreter.interpret(it) }
+            println(interpreter.getVariables())
+            println(interpreter.getFunctions())
         }
     }
 
@@ -259,19 +282,19 @@ class ParsersTests {
         }
 
         @Test
-        fun `can define function literal`() {
+        fun `can define function literal with no parameter`() {
             val interpreter = Interpreter()
             val source = """
-            { x, y ->
-              x * y;
+            _ -> {
+              "Hello, Lambda"; 
             }
             """.trimIndent()
             val expression = Parsers.functionLiteral().parse(Input.of(source)).result
             val result = interpreter.interpret(expression)
             when (result) {
                 is Value.Function -> {
-                    kotlin.test.assertTrue(result.args.containsAll(listOf("x")))
-                    assertTrue(result.lines[0] is Expression.BinaryExpression)
+                    kotlin.test.assertTrue(result.args.containsAll(listOf("_")))
+                    println(result)
                 }
                 else -> throw RuntimeException()
             }

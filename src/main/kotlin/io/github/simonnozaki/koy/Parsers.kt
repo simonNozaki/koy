@@ -1,15 +1,14 @@
 package io.github.simonnozaki.koy
 
+import io.github.simonnozaki.koy.Expression.*
 import org.javafp.data.Unit
+import org.javafp.parsecj.Combinators
 import org.javafp.parsecj.Parser
+import org.javafp.parsecj.Text.intr
+import org.javafp.parsecj.Text.regex
 import org.javafp.parsecj.Text.string
 import org.javafp.parsecj.Text.wspace
-import org.javafp.parsecj.Text.regex
-import org.javafp.parsecj.Text.intr
 import java.util.function.BinaryOperator
-import io.github.simonnozaki.koy.Expression.*
-import org.javafp.parsecj.Combinators
-
 
 // TODO anonymous function definition for object literal properties
 // TODO property call by dot operator as method call
@@ -20,7 +19,7 @@ object Parsers {
      * after 2nd: alphabet + number + _
      */
     private const val PATTERN_IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*"
-    private const val PATTERN_STRING_LITERAL = "[a-zA-Z0-9][a-zA-Z0-9_, ]*"
+    private const val PATTERN_STRING_LITERAL = "[a-zA-Z0-9][a-zA-Z0-9-_, ]*"
 
     private val SPACING: Parser<Char, Unit> = wspace.map { Unit.unit }.or(regex("(?m)//.*$").map { Unit.unit })
     private val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
@@ -59,7 +58,7 @@ object Parsers {
     private val ARROW: Parser<Char, Unit> = string("->").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
-    private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v ->  SPACINGS.map { v } }
+    private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v -> SPACINGS.map { v } }
     private val bool: Parser<Char, BoolLiteral> = TRUE.map { bool(true) }
         .or(FALSE.map { bool(false) })
         .bind { v -> SPACINGS.map { v } }
@@ -99,18 +98,23 @@ object Parsers {
     }
 
     /**
+     * # Function literal
+     *
+     * ## PEG
      * ```
-     * functionLiteral <- '{' '(' (identifier(, identifier)*)? ')' '->' expression '}'
+     * functionLiteral <- (identifier(, identifier)*)? '->' blockExpression
+     * ```
+     * ## Sample syntax
+     * ```ky
+     * x,y -> {
+     *   x + y;
+     * }
      * ```
      */
     fun functionLiteral(): Parser<Char, FunctionLiteral> {
-        return LBRACE.bind {
-            IDENT.sepBy(COMMA).bind { params ->
-                ARROW.then(line().many()).bind { expressions ->
-                    RBRACE.map {
-                        FunctionLiteral(params.toList(), expressions.toList())
-                    }
-                }
+        return IDENT.sepBy(COMMA).bind { params ->
+            ARROW.then(blockExpression()).map { block ->
+                FunctionLiteral(params.toList(), block)
             }
         }
     }
@@ -140,7 +144,7 @@ object Parsers {
      *   / expressionLine
      * ```
      */
-    private fun line(): Parser<Char, Expression> {
+    fun line(): Parser<Char, Expression> {
         return println()
             .or(blockExpression())
             .or(ifExpression())
@@ -289,12 +293,12 @@ object Parsers {
      * )*;
      */
     private fun comparative(): Parser<Char, Expression> {
-        val eqeq: Parser<Char, BinaryOperator<Expression>> = EQEQ.attempt().map { BinaryOperator {l, r -> equal(l, r) } }
-        val ne: Parser<Char, BinaryOperator<Expression>> = NE.attempt().map { BinaryOperator {l, r -> notEqual(l, r) } }
-        val gt: Parser<Char, BinaryOperator<Expression>> = GT.attempt().map { BinaryOperator {l, r -> greaterThan(l, r) } }
-        val gtEq: Parser<Char, BinaryOperator<Expression>> = GT_EQ.attempt().map { BinaryOperator {l, r -> greaterThanEqual(l, r) } }
-        val lt: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator {l, r -> lessThan(l, r) } }
-        val ltEq: Parser<Char, BinaryOperator<Expression>> = LT_EQ.attempt().map { BinaryOperator {l, r -> lessThanEqual(l, r) } }
+        val eqeq: Parser<Char, BinaryOperator<Expression>> = EQEQ.attempt().map { BinaryOperator { l, r -> equal(l, r) } }
+        val ne: Parser<Char, BinaryOperator<Expression>> = NE.attempt().map { BinaryOperator { l, r -> notEqual(l, r) } }
+        val gt: Parser<Char, BinaryOperator<Expression>> = GT.attempt().map { BinaryOperator { l, r -> greaterThan(l, r) } }
+        val gtEq: Parser<Char, BinaryOperator<Expression>> = GT_EQ.attempt().map { BinaryOperator { l, r -> greaterThanEqual(l, r) } }
+        val lt: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator { l, r -> lessThan(l, r) } }
+        val ltEq: Parser<Char, BinaryOperator<Expression>> = LT_EQ.attempt().map { BinaryOperator { l, r -> lessThanEqual(l, r) } }
 
         return addictive().chainl1(
             lt.or(ltEq).or(gt).or(gtEq).or(eqeq).or(ne)
@@ -349,7 +353,8 @@ object Parsers {
      */
     private fun primary(): Parser<Char, Expression> {
         return LPAREN.bind {
-                expression().bind { v->  RPAREN.map { v }
+            expression().bind { v ->
+                RPAREN.map { v }
             }
         }
             .or(integer)
