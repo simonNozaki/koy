@@ -1,8 +1,7 @@
 package io.github.simonnozaki.koy
 
-import org.junit.jupiter.api.Test
-
 import io.github.simonnozaki.koy.Expression.*
+import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 /**
@@ -37,7 +36,7 @@ class InterpreterTests {
     @Test
     fun can_evaluate_main_function() {
         val topLevels = listOf(
-            // define main() {
+            // fn main() {
             //   add(10, 20)
             // }
             defineFunction(
@@ -47,7 +46,7 @@ class InterpreterTests {
                     Println(call("add", integer(10), integer(20)))
                 )
             ),
-            // define add(v1, v2) {
+            // fn add(v1, v2) {
             //   v1 + v2
             // }
             defineFunction(
@@ -67,28 +66,34 @@ class InterpreterTests {
     @Test
     fun can_evaluate_factorial() {
         val topLevels = listOf(
-            // define factorial(v) {
+            // fn factorial(v) {
             //   if (v < 2) {
             //     1
             //   }
             //   factorial(v - 1) * v
             // }
-            defineFunction("factorial", listOf("v"), Block(
-                If(
-                    lessThan(identifier("v"), integer(2)),
-                    integer(1),
-                    multiply(
-                        call("factorial", subtract(identifier("v"), integer(1))),
-                        identifier("v")
+            defineFunction(
+                "factorial", listOf("v"),
+                Block(
+                    If(
+                        lessThan(identifier("v"), integer(2)),
+                        integer(1),
+                        multiply(
+                            call("factorial", subtract(identifier("v"), integer(1))),
+                            identifier("v")
+                        )
                     )
                 )
-            )),
-            // define main() {
+            ),
+            // fn main() {
             //   factorial(5)
             // }
-            defineFunction("main", listOf(), Block(
-                Println(call("factorial", integer(5)))
-            ))
+            defineFunction(
+                "main", listOf(),
+                Block(
+                    Println(call("factorial", integer(5)))
+                )
+            )
         )
 
         val result = interpreter.callMain(Program(topLevels))
@@ -129,10 +134,15 @@ class InterpreterTests {
     fun can_evaluate_object() {
         val interpreter = Interpreter()
         // o = { a: 1, b: "1" }
-        val statement = assign("o", Object(mapOf(
-            "a" to integer(1),
-            "b" to str("1")
-        )))
+        val statement = assign(
+            "o",
+            Object(
+                mapOf(
+                    "a" to integer(1),
+                    "b" to str("1")
+                )
+            )
+        )
         interpreter.interpret(statement)
         val o = interpreter.getValue("o")?.asObject()?.value
 
@@ -150,8 +160,10 @@ class InterpreterTests {
             "f",
             FunctionLiteral(
                 listOf("x", "y"),
-                listOf(
-                    add(identifier("x"), identifier("y"))
+                BlockExpression(
+                    listOf(
+                        add(identifier("x"), identifier("y"))
+                    )
                 )
             )
         )
@@ -160,9 +172,14 @@ class InterpreterTests {
         println(f)
 
         assertEquals("f", f?.name)
-        assertEquals(true, f?.args?.containsAll(listOf(
-            "x",
-            "y"
-        )))
+        assertEquals(
+            true,
+            f?.args?.containsAll(
+                listOf(
+                    "x",
+                    "y"
+                )
+            )
+        )
     }
 }

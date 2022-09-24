@@ -40,15 +40,15 @@ sealed class Value {
 
     data class Function(
         val args: List<kotlin.String>,
-        val lines: List<Expression>
-    ): Value()
+        val body: Expression.BlockExpression
+    ) : Value()
 
     companion object {
         /**
          * Factory method of sealed class `Value`.
          */
         fun of(v: Any): Value {
-            return when(v) {
+            return when (v) {
                 is kotlin.Int -> Int(v)
                 is List<*> -> Array(v as List<Value>)
                 is Boolean -> Bool(v)
@@ -59,6 +59,6 @@ sealed class Value {
 
         fun ofObject(v: Map<kotlin.String, Value>) = Object(v)
 
-        fun ofFunction(args: List<kotlin.String>, lines: List<Expression>) = Function(args, lines)
+        fun ofFunction(args: List<kotlin.String>, body: Expression.BlockExpression) = Function(args, body)
     }
 }

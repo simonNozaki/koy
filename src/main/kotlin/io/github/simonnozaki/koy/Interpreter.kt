@@ -72,7 +72,7 @@ class Interpreter(
             return Value.ofObject(propertiesMap)
         }
         if (expression is FunctionLiteral) {
-            return Value.ofFunction(expression.args, expression.lines)
+            return Value.ofFunction(expression.args, expression.body)
         }
         if (expression is Identifier) {
             // Get variable
@@ -89,7 +89,7 @@ class Interpreter(
                 // Function literal is assigned as `FunctionDefinition`, so check value type if is `Value.Function`.
                 when (value) {
                     is Value.Function -> {
-                        val def = defineFunction(expression.name, value.args, BlockExpression(value.lines))
+                        val def = defineFunction(expression.name, value.args, value.body)
                         functionEnvironment[expression.name] = def
                     }
                     else -> variableEnvironment.bindings[expression.name] = value

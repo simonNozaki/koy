@@ -23,7 +23,7 @@ sealed class Expression {
 
     data class FunctionLiteral(
         val args: List<String>,
-        val lines: List<Expression>
+        val body: BlockExpression
     ) : Expression()
 
     data class BinaryExpression(
