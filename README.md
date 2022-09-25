@@ -43,6 +43,7 @@ for (i in 0 to 10) {
 
 ## Function
 Definition. Program should have `main` function. It also defines function by function literal.
+### Top level function definition
 ```
 fn factorial(x) {
   if (x < 2) {
@@ -51,15 +52,36 @@ fn factorial(x) {
   x * factorial(x - 1);
 }
 
-square = n -> {
-  n * n;
-};
-
 fn main() {
   factorial(5);
   
   square(5);
 }
+```
+### Function literal(or lambda)
+Simple function literal sample
+```
+square = |n| {
+  n * n;
+};
+
+result = square();
+```
+
+Closure-like sample
+```
+Age = |v| {
+  _v = v;
+  {
+    v: _v,
+    getOld: |_| {
+      _v = _v + 1;
+    }
+  };
+};
+
+now = Age(21);
+println(now);
 ```
 
 Function can be called by 2 way: standard call and labeled parameter call 
