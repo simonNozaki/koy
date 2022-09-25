@@ -4,20 +4,6 @@ import org.javafp.parsecj.input.Input
 
 fun main() {
     val interpreter = Interpreter()
-    Parsers.lines()
-        .parse(
-            Input.of(
-                """
-                l = x, y -> {
-                  x, y;
-                };
-                println(l);
-                """.trimIndent()
-            )
-        )
-        .result
-        .forEach { interpreter.interpret(it) }
-    println(interpreter.getVariables())
 
     val linesSource = """
     lang = "koy";
@@ -26,18 +12,32 @@ fun main() {
     
     object = {
       name: "koy",
-      influencedBy: ["Toys", "JavaScript", "Kotlin"]
+      influencedBy: ["Koy", "JavaScript", "Kotlin"]
     };
     println(object);
     
-    x -> {
-      "Hello, Lambda";
+    greet = |msg| {
+      "Hello, " + msg;
     };
+    greet("Koy");
+    
+    Age = |value| {
+      _v = value;
+      {
+        v: _v,
+        getOld: |_| {
+          _v = _v + 1;
+        }
+      };
+    };
+    now = Age(29);
     """.trimIndent()
     Parsers.lines()
         .parse(Input.of(linesSource))
         .result
         .forEach { interpreter.interpret(it) }
+
+    println(interpreter.getValue("now"))
 
     println(interpreter.getVariables())
     println(interpreter.getFunctions())
