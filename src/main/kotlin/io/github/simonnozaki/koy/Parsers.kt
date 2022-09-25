@@ -12,6 +12,7 @@ import java.util.function.BinaryOperator
 
 // TODO property call by dot operator as method call
 // TODO comment out
+// TODO Lambda is compatible with higer kind function?
 object Parsers {
     /**
      * 1st: alphabet + _
@@ -68,7 +69,15 @@ object Parsers {
     }.bind { v -> SPACINGS.map { v } }
 
     /**
+     * # Array literal
+     * ## PEG
+     * ```
      * arrayLiteral <- '[' (expression(, expression)*)? ']'
+     * ```
+     * ## Sample syntax
+     * ```
+     * odd = [1, 3, 5];
+     * ```
      */
     private fun arrayLiteral(): Parser<Char, ArrayLiteral> {
         return LBRACKET.bind {
@@ -79,8 +88,18 @@ object Parsers {
     }
 
     /**
+     * # Object literal
+     * ## PEG
      * ```
      * objectLiteral <- '{' (identifier ':' expression (,identifier ':' expression*)? '}'
+     * ```
+     *
+     * ## Sample syntax
+     * ```
+     * {
+     *   name: "Koy",
+     *   buildAt: "2022-09-25"
+     * }
      * ```
      */
     // TODO check prop names duplication
@@ -101,7 +120,7 @@ object Parsers {
      *
      * ## PEG
      * ```
-     * functionLiteral <- (identifier(, identifier)*)? '->' blockExpression
+     * functionLiteral <- '|' (identifier(, identifier)*)? '|' blockExpression
      * ```
      * ## Sample syntax
      * ```ky
@@ -132,7 +151,9 @@ object Parsers {
     }
 
     /**
-     * 行の定義、1行とカウントされる式の単位
+     * # Line definition
+     * The unit that is equal to one line. Expressions are all as one line.
+     * ## PEG
      * ```
      * line <- println
      *   / ifExpression
@@ -190,10 +211,15 @@ object Parsers {
     }
 
     /**
-     * 関数呼び出し
-     * `(expression (',' expression)*)?` で複数の式が引数としてマッチする
+     * # Function call
+     * ## PEG
      * ```
      * functionCall <- identifier '(' (expression (',' expression)*)? ')'
+     * ```
+     *
+     * ## Sample syntax
+     * ```
+     * factorial(5)
      * ```
      */
     private fun functionCall(): Parser<Char, FunctionCall> {
