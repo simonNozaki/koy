@@ -10,7 +10,6 @@ import org.javafp.parsecj.Text.string
 import org.javafp.parsecj.Text.wspace
 import java.util.function.BinaryOperator
 
-// TODO anonymous function definition for object literal properties
 // TODO property call by dot operator as method call
 // TODO comment out
 object Parsers {
@@ -124,7 +123,7 @@ object Parsers {
      * println <- println '(' expression ')' ';'
      * ```
      */
-    fun println(): Parser<Char, Expression> {
+    private fun println(): Parser<Char, Expression> {
         return PRINTLN.bind {
             expression().between(LPAREN, RPAREN).bind { param ->
                 SEMI_COLON.map { PrintLn(param) as Expression }
