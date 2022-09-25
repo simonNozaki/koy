@@ -236,14 +236,16 @@ class ParsersTests {
             val interpreter = Interpreter()
             // Lambda unused parameter is shortcuttable
             val source = """
-            l = x -> {
-              "Hello, Lambda";
+            l = |x| {
+              "Hello, " + x; 
             };
             """.trimIndent()
             val statements = Parsers.lines().parse(Input.of(source)).result
             statements.forEach { interpreter.interpret(it) }
-            println(interpreter.getVariables())
-            println(interpreter.getFunctions())
+            val functions = interpreter.getFunctions()
+
+            assertEquals("l", functions["l"]?.name)
+            assertEquals("x", functions["l"]?.args?.get(0))
         }
     }
 
@@ -285,15 +287,15 @@ class ParsersTests {
         fun `can define function literal with no parameter`() {
             val interpreter = Interpreter()
             val source = """
-            _ -> {
-              "Hello, Lambda"; 
+            |x| {
+              "Hello, " + x; 
             }
             """.trimIndent()
             val expression = Parsers.functionLiteral().parse(Input.of(source)).result
             val result = interpreter.interpret(expression)
             when (result) {
                 is Value.Function -> {
-                    kotlin.test.assertTrue(result.args.containsAll(listOf("_")))
+                    kotlin.test.assertTrue(result.args.containsAll(listOf("x")))
                     println(result)
                 }
                 else -> throw RuntimeException()

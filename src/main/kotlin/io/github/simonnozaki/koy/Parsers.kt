@@ -55,7 +55,7 @@ object Parsers {
     private val LBRACKET: Parser<Char, Unit> = string("[").then(SPACINGS)
     private val RBRACKET: Parser<Char, Unit> = string("]").then(SPACINGS)
     private val D_QUOTE: Parser<Char, Unit> = string("\"").then(SPACINGS)
-    private val ARROW: Parser<Char, Unit> = string("->").then(SPACINGS)
+    private val PIPE: Parser<Char, Unit> = string("|").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v -> SPACINGS.map { v } }
@@ -106,14 +106,14 @@ object Parsers {
      * ```
      * ## Sample syntax
      * ```ky
-     * x,y -> {
+     * |x,y| {
      *   x + y;
      * }
      * ```
      */
     fun functionLiteral(): Parser<Char, FunctionLiteral> {
-        return IDENT.sepBy(COMMA).bind { params ->
-            ARROW.then(blockExpression()).map { block ->
+        return IDENT.sepBy(COMMA).between(PIPE, PIPE).bind { params ->
+            blockExpression().map { block ->
                 FunctionLiteral(params.toList(), block)
             }
         }
@@ -146,12 +146,12 @@ object Parsers {
      */
     fun line(): Parser<Char, Expression> {
         return println()
+            .or(assignment())
             .or(blockExpression())
             .or(ifExpression())
             .or(forInExpression())
             .or(whileExpression())
             .or(expressionLine())
-            .or(assignment())
     }
 
     /**
