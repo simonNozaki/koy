@@ -11,7 +11,7 @@ Original implementation is here: https://github.com/kmizu/toys
 - `String` : `"text"`
 - `Array` : `["Kotlin", "Java", "Koy"]`
 - `Object` : `{ x: 1, y: "y" }`
-- `Function` : `x -> { x * x; };`
+- `Function` : `|x| -> { x * x; };`
 
 ## Control Flow
 Standard control flows is all expressions and therefore return last value of blocks.
