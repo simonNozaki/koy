@@ -1,7 +1,7 @@
 package io.github.simonnozaki.koy
 
-import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.Expression.*
+import io.github.simonnozaki.koy.Operator.*
 
 // TODO add a printer of tree node for debug logging
 class Interpreter(
@@ -26,7 +26,7 @@ class Interpreter(
         val lhs = interpret(binaryExpression.lhs)
         val rhs = interpret(binaryExpression.rhs)
 
-        val result =  when(binaryExpression.operator) {
+        val result = when (binaryExpression.operator) {
             ADD -> {
                 if (lhs.isString() && rhs.isString()) {
                     lhs.asString().value + rhs.asString().value
@@ -115,7 +115,7 @@ class Interpreter(
                 if (condition) {
                     interpret(expression.body)
                 } else {
-                    break;
+                    break
                 }
             }
             return Value.of(true)
@@ -127,10 +127,10 @@ class Interpreter(
             while (iterator.hasNext()) {
                 v = interpret(iterator.next())
             }
-            return  v
+            return v
         }
         if (expression is FunctionCall) {
-            val definition = functionEnvironment[expression.name] ?: throw KoyLangRuntimeException("Function ${expression.name} not found")
+            val definition = functionEnvironment[expression.name] ?: throw KoyLangRuntimeException("Function [ ${expression.name} ] not found")
 
             val actualParams = expression.args
             val formalParams = definition.args
