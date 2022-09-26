@@ -58,11 +58,6 @@ fun If(
     elseClause: Expression?
 ): IfExpression = IfExpression(condition, thenClause, elseClause)
 
-fun If(
-    condition: Expression,
-    thenClause: Expression
-): IfExpression = IfExpression(condition, thenClause, null)
-
 fun While(condition: Expression, body: Expression) = WhileExpression(condition, body)
 
 data class Program(

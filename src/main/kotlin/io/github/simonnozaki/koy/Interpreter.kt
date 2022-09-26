@@ -50,6 +50,7 @@ class Interpreter(
     }
 
     fun interpret(expression: Expression): Value {
+        println("|- $expression")
         if (expression is BinaryExpression) {
             return getBinaryOpsResult(expression)
         }
