@@ -9,6 +9,8 @@ import org.javafp.parsecj.Text.regex
 import org.javafp.parsecj.Text.string
 import org.javafp.parsecj.Text.wspace
 import java.util.function.BinaryOperator
+import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
+import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
 
 // TODO anonymous function definition for object literal properties
 // TODO property call by dot operator as method call

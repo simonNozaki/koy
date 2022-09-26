@@ -1,6 +1,7 @@
 package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.Expression.*
+import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 
 fun add(lhs: Expression, rhs: Expression): BinaryExpression {
     return BinaryExpression(Operator.ADD, lhs, rhs)

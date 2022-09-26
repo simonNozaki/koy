@@ -2,6 +2,8 @@ package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.Expression.*
 import io.github.simonnozaki.koy.Operator.*
+import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
+import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
 
 // TODO add a printer of tree node for debug logging
 class Interpreter(
