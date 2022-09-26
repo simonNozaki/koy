@@ -147,11 +147,11 @@ object Parsers {
     fun line(): Parser<Char, Expression> {
         return println()
             .or(assignment())
+            .or(expressionLine())
             .or(blockExpression())
             .or(ifExpression())
             .or(forInExpression())
             .or(whileExpression())
-            .or(expressionLine())
     }
 
     /**
@@ -364,8 +364,8 @@ object Parsers {
             .or(labeledCall())
             .or(identifier())
             .or(arrayLiteral())
-            .or(functionLiteral())
             .or(objectLiteral())
+            .or(functionLiteral())
     }
 
     /**
