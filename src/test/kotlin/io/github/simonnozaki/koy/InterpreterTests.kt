@@ -182,4 +182,23 @@ class InterpreterTests {
             )
         )
     }
+
+    @Test
+    fun `can increment and decrement`() {
+        val interpreter = Interpreter()
+        listOf(
+            // n = 1;
+            // n2 = n++;
+            // m = 1;
+            // m2 = m--;
+            assign("n", integer(1)),
+            assign("n2", increment("n")),
+            assign("m", integer(1)),
+            assign("m2", decrement("m"),)
+        ).forEach { interpreter.interpret(it) }
+        println(interpreter.getVariables())
+
+        assertEquals(2, interpreter.getValue("n2")?.asInt()?.value)
+        assertEquals(0, interpreter.getValue("m2")?.asInt()?.value)
+    }
 }

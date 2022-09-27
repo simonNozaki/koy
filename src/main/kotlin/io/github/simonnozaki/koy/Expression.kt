@@ -32,6 +32,11 @@ sealed class Expression {
         val rhs: Expression
     ) : Expression()
 
+    data class UnaryExpression(
+        val operator: UnaryOperator,
+        val value: Expression
+    ) : Expression()
+
     data class Assignment(
         val name: String,
         val expression: Expression

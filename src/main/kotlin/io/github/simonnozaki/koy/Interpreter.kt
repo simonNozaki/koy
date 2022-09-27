@@ -4,6 +4,7 @@ import io.github.simonnozaki.koy.Expression.*
 import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
+import io.github.simonnozaki.koy.UnaryOperator.*
 
 // TODO add a printer of tree node for debug logging
 class Interpreter(
@@ -53,6 +54,19 @@ class Interpreter(
 
     fun interpret(expression: Expression): Value {
         println("|- $expression")
+        if (expression is UnaryExpression) {
+            val identifier = try {
+                interpret(expression.value).asInt().value
+            } catch (e: Exception) {
+                throw KoyLangRuntimeException("Unary operation should apply with integer variables, error => $e")
+            }
+
+            val v = when (expression.operator) {
+                INCREMENT -> identifier + 1
+                DECREMENT -> identifier - 1
+            }
+            return Value.of(v)
+        }
         if (expression is BinaryExpression) {
             return getBinaryOpsResult(expression)
         }
@@ -194,6 +208,7 @@ class Interpreter(
             when (topLevel) {
                 is FunctionDefinition -> functionEnvironment[topLevel.name] = topLevel
                 is GlobalVariableDefinition -> variableEnvironment.bindings[topLevel.name] = interpret(topLevel.expression)
+                else -> throw KoyLangRuntimeException("Not implemented here")
             }
         }
         val mainFunction = functionEnvironment["main"]

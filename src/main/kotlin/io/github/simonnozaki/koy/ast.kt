@@ -53,6 +53,10 @@ fun Println(expression: Expression) = PrintLn(expression)
 
 fun defineFunction(name: String, args: List<String>, body: Expression) = FunctionDefinition(name, args, body)
 
+fun increment(name: String) = UnaryExpression(UnaryOperator.INCREMENT, identifier(name))
+
+fun decrement(name: String) = UnaryExpression(UnaryOperator.DECREMENT, identifier(name))
+
 fun If(
     condition: Expression,
     thenClause: Expression,
