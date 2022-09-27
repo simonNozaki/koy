@@ -12,7 +12,6 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
 
-// TODO anonymous function definition for object literal properties
 // TODO property call by dot operator as method call
 // TODO comment out
 object Parsers {
@@ -35,6 +34,8 @@ object Parsers {
     private val LT_EQ: Parser<Char, Unit> = string("<=").then(SPACINGS)
     private val GT: Parser<Char, Unit> = string(">").then(SPACINGS)
     private val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
+    private val INCREMENT: Parser<Char, Unit> = string("++").then(SPACINGS)
+    private val DECREMENT: Parser<Char, Unit> = string("--").then(SPACINGS)
     private val GLOBAL: Parser<Char, Unit> = string("global").then(SPACINGS)
     private val FN: Parser<Char, Unit> = string("fn").then(SPACINGS)
     private val PRINTLN: Parser<Char, Unit> = string("println").then(SPACINGS)
@@ -119,6 +120,23 @@ object Parsers {
                 FunctionLiteral(params.toList(), block)
             }
         }
+    }
+
+    /**
+     * # Unary operation
+     * ## PEG
+     * ```
+     * unaryExpression <- identifier'++' / identifier'--'
+     * ```
+     */
+    fun unary(): Parser<Char, Expression> {
+        val increment: Parser<Char, Expression> = IDENT.bind {  name ->
+            INCREMENT.map { UnaryExpression(UnaryOperator.INCREMENT, Identifier(name)) }
+        }
+        val decrement: Parser<Char, Expression> = IDENT.bind {  name ->
+            DECREMENT.map { UnaryExpression(UnaryOperator.DECREMENT, Identifier(name)) }
+        }
+        return increment.or(decrement)
     }
 
     /**
@@ -368,6 +386,7 @@ object Parsers {
             .or(arrayLiteral())
             .or(objectLiteral())
             .or(functionLiteral())
+            .or(unary())
     }
 
     /**

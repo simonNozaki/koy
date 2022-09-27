@@ -247,6 +247,25 @@ class ParsersTests {
             assertEquals("l", functions["l"]?.name)
             assertEquals("x", functions["l"]?.args?.get(0))
         }
+
+
+        @Test
+        fun `can increment and decrement`() {
+            val interpreter = Interpreter()
+            val source = """
+            n = 1;
+            n2 = n++;
+            m = 1;
+            m2 = m--;
+            """.trimIndent()
+            Parsers.lines()
+                .parse(Input.of(source))
+                .result
+                .forEach { interpreter.interpret(it) }
+
+            assertEquals(2, interpreter.getValue("n2")?.asInt()?.value)
+            assertEquals(0, interpreter.getValue("m2")?.asInt()?.value)
+        }
     }
 
     @Nested
