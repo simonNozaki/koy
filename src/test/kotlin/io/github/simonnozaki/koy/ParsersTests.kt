@@ -254,9 +254,9 @@ class ParsersTests {
             val interpreter = Interpreter()
             val source = """
             n = 1;
-            n2 = n++;
+            n2 = ++n;
             m = 1;
-            m2 = m--;
+            m2 = --m;
             """.trimIndent()
             Parsers.lines()
                 .parse(Input.of(source))

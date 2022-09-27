@@ -130,11 +130,11 @@ object Parsers {
      * ```
      */
     fun unary(): Parser<Char, Expression> {
-        val increment: Parser<Char, Expression> = IDENT.bind {  name ->
-            INCREMENT.map { UnaryExpression(UnaryOperator.INCREMENT, Identifier(name)) }
+        val increment: Parser<Char, Expression> = INCREMENT.bind {
+            IDENT.map { name -> UnaryExpression(UnaryOperator.INCREMENT, Identifier(name)) }
         }
-        val decrement: Parser<Char, Expression> = IDENT.bind {  name ->
-            DECREMENT.map { UnaryExpression(UnaryOperator.DECREMENT, Identifier(name)) }
+        val decrement: Parser<Char, Expression> = DECREMENT.bind {
+            IDENT.map { name -> UnaryExpression(UnaryOperator.DECREMENT, Identifier(name)) }
         }
         return increment.or(decrement)
     }
@@ -380,13 +380,13 @@ object Parsers {
             .or(integer)
             .or(bool)
             .or(string)
-            .or(functionCall())
-            .or(labeledCall())
-            .or(identifier())
-            .or(arrayLiteral())
-            .or(objectLiteral())
-            .or(functionLiteral())
-            .or(unary())
+            .or(functionCall())    // identifier '(' identifier ')'
+            .or(labeledCall())     // identifier '[' identifier=expression ']'
+            .or(identifier())      // identifier
+            .or(unary())           // ++identifier / --identifier
+            .or(arrayLiteral())    // '[' (expression) ']'
+            .or(objectLiteral())   // '{' identifier ':' expression '}'
+            .or(functionLiteral()) // '|' identifier '|' blockExpression
     }
 
     /**
