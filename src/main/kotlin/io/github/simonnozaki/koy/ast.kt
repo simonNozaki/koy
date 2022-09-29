@@ -69,21 +69,3 @@ data class Program(
     val definitions: List<TopLevel>
 )
 
-data class Environment(
-    val bindings: MutableMap<String, Value>,
-    val next: Environment?
-) {
-    /**
-     * Get values map from variable name along to `Environment` chaining
-     * @param name
-     */
-    fun findBindings(name: String): MutableMap<String, Value>? {
-        if (bindings[name] != null) {
-            return bindings
-        }
-        if (next != null) {
-            return next.findBindings(name)
-        }
-        return null
-    }
-}
