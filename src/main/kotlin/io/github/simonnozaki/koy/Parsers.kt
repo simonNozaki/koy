@@ -12,6 +12,7 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
 
+// TODO val assignment
 // TODO property call by dot operator as method call
 // TODO comment out
 object Parsers {
@@ -45,6 +46,7 @@ object Parsers {
     private val FOR: Parser<Char, Unit> = string("for").then(SPACINGS)
     private val IN: Parser<Char, Unit> = string("in").then(SPACINGS)
     private val TO: Parser<Char, Unit> = string("to").then(SPACINGS)
+    private val VAL: Parser<Char, Unit> = string("val").then(SPACINGS)
     private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
     private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
@@ -167,6 +169,7 @@ object Parsers {
     fun line(): Parser<Char, Expression> {
         return println()
             .or(assignment())
+            .or(valAssignment())
             .or(expressionLine())
             .or(blockExpression())
             .or(ifExpression())
@@ -196,6 +199,26 @@ object Parsers {
         return IDENT.bind { name ->
             EQ.then(expression()).bind { expr ->
                 SEMI_COLON.map { Assignment(name, expr) }
+            }
+        }.attempt()
+    }
+
+    /**
+     * # val assignment
+     * val assignment can assign variable only at once.
+     * ## PEG
+     * ```
+     * valAssignment <- 'val' identifier '=' expression ';'
+     * ```
+     * ## Sample syntax
+     * ```
+     * val f = |x, y| { x + y; };
+     * ```
+     */
+    fun valAssignment(): Parser<Char, ValDeclaration> {
+        return VAL.then(IDENT).bind { name ->
+            EQ.then(expression()).bind { expr ->
+                SEMI_COLON.map { ValDeclaration(name, expr) }
             }
         }.attempt()
     }
@@ -381,7 +404,7 @@ object Parsers {
             .or(bool)
             .or(string)
             .or(functionCall())    // identifier '(' identifier ')'
-            .or(labeledCall())     // identifier '[' identifier=expression ']'
+            .or(labeledCall())     // identifier '[' identifier '=' expression ']'
             .or(identifier())      // identifier
             .or(unary())           // ++identifier / --identifier
             .or(arrayLiteral())    // '[' (expression) ']'

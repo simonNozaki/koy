@@ -6,10 +6,10 @@ import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
 import io.github.simonnozaki.koy.UnaryOperator.*
 
-// TODO add a printer of tree node for debug logging
+// TODO builtin functions
 class Interpreter(
     private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
-    private var variableEnvironment: Environment = Environment(mutableMapOf(), null)
+    private var variableEnvironment: RuntimeEnvironment = RuntimeEnvironment(mutableMapOf(), null)
 ) {
     /**
      * Return the value from interpreter variable environment
@@ -96,11 +96,36 @@ class Interpreter(
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
         }
+        if (expression is ValDeclaration) {
+            val bindingsOptions = variableEnvironment.findBindings(expression.name)
+            val value = interpret(expression.expression)
+            if (bindingsOptions != null) {
+                if (variableEnvironment.hasDeclaration(expression.name)) {
+                    throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
+                }
+                variableEnvironment.setAsVal(expression.name, value)
+            } else {
+                when (value) {
+                    is Value.Function -> {
+                        val def = defineFunction(expression.name, value.args, value.body)
+                        functionEnvironment[expression.name] = def
+                    }
+                    else -> variableEnvironment.setAsVal(expression.name, value)
+                }
+            }
+            return value
+        }
         if (expression is Assignment) {
             // Assign variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
             if (bindingOptions != null) {
+                if (variableEnvironment.hasDeclaration(expression.name)) {
+                    throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
+                }
+                if (variableEnvironment.isNotReassignable(expression.name)) {
+                    throw KoyLangRuntimeException("Declaration [ ${expression.name} is declared as val, immutable. ]")
+                }
                 bindingOptions[expression.name] = value
             } else {
                 // Function literal is assigned as `FunctionDefinition`, so check value type if is `Value.Function`.
@@ -197,7 +222,7 @@ class Interpreter(
         throw KoyLangRuntimeException("Expression $expression can not be parsed.")
     }
 
-    private fun newEnvironment(next: Environment?): Environment = Environment(mutableMapOf(), next)
+    private fun newEnvironment(next: RuntimeEnvironment?): RuntimeEnvironment = RuntimeEnvironment(mutableMapOf(), next)
 
     /**
      * Execute `main` function. Throw runtime exception if a program has no `main` function.
@@ -208,7 +233,6 @@ class Interpreter(
             when (topLevel) {
                 is FunctionDefinition -> functionEnvironment[topLevel.name] = topLevel
                 is GlobalVariableDefinition -> variableEnvironment.bindings[topLevel.name] = interpret(topLevel.expression)
-                else -> throw KoyLangRuntimeException("Not implemented here")
             }
         }
         val mainFunction = functionEnvironment["main"]
