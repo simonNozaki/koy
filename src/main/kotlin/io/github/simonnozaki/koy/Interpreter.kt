@@ -97,21 +97,16 @@ class Interpreter(
             return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
         }
         if (expression is ValDeclaration) {
-            val bindingsOptions = variableEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
-            if (bindingsOptions != null) {
-                if (variableEnvironment.hasDeclaration(expression.name)) {
-                    throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
+            if (variableEnvironment.hasDeclaration(expression.name)) {
+                throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
+            }
+            when (value) {
+                is Value.Function -> {
+                    val def = defineFunction(expression.name, value.args, value.body)
+                    functionEnvironment[expression.name] = def
                 }
-                variableEnvironment.setAsVal(expression.name, value)
-            } else {
-                when (value) {
-                    is Value.Function -> {
-                        val def = defineFunction(expression.name, value.args, value.body)
-                        functionEnvironment[expression.name] = def
-                    }
-                    else -> variableEnvironment.setAsVal(expression.name, value)
-                }
+                else -> variableEnvironment.setAsVal(expression.name, value)
             }
             return value
         }
@@ -121,10 +116,7 @@ class Interpreter(
             val value = interpret(expression.expression)
             if (bindingOptions != null) {
                 if (variableEnvironment.hasDeclaration(expression.name)) {
-                    throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
-                }
-                if (variableEnvironment.isNotReassignable(expression.name)) {
-                    throw KoyLangRuntimeException("Declaration [ ${expression.name} is declared as val, immutable. ]")
+                    throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
                 }
                 bindingOptions[expression.name] = value
             } else {

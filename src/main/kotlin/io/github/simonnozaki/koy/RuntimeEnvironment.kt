@@ -6,12 +6,10 @@ data class RuntimeEnvironment(
 ) {
     private val immutables: MutableMap<String, Value> = mutableMapOf()
 
-    fun hasDeclaration(key: String): Boolean = bindings[key] != null && immutables[key] != null
-
     /**
-     * Return true if a value related to the `key` is immutable
+     * Return true if the identifier of `key` already exists.
      */
-    fun isNotReassignable(key: String): Boolean = immutables[key] != null
+    fun hasDeclaration(key: String): Boolean = findBindings(key) != null && immutables[key] != null
 
     fun setAsVal(key: String, value: Value) {
         immutables[key] = value
