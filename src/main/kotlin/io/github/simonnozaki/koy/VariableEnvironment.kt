@@ -1,8 +1,8 @@
 package io.github.simonnozaki.koy
 
-data class RuntimeEnvironment(
+data class VariableEnvironment(
     val bindings: MutableMap<String, Value>,
-    val next: RuntimeEnvironment?
+    val next: VariableEnvironment?
 ) {
     private val immutables: MutableMap<String, Value> = mutableMapOf()
 

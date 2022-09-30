@@ -9,7 +9,7 @@ import io.github.simonnozaki.koy.UnaryOperator.*
 // TODO builtin functions
 class Interpreter(
     private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
-    private var variableEnvironment: RuntimeEnvironment = RuntimeEnvironment(mutableMapOf(), null)
+    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null)
 ) {
     /**
      * Return the value from interpreter variable environment
@@ -115,7 +115,7 @@ class Interpreter(
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
             if (bindingOptions != null) {
-                if (variableEnvironment.hasDeclaration(expression.name)) {
+                if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment[expression.name] != null) {
                     throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
                 }
                 bindingOptions[expression.name] = value
@@ -128,7 +128,6 @@ class Interpreter(
                     }
                     else -> variableEnvironment.bindings[expression.name] = value
                 }
-                variableEnvironment.bindings[expression.name] = value
             }
             return value
         }
@@ -214,7 +213,7 @@ class Interpreter(
         throw KoyLangRuntimeException("Expression $expression can not be parsed.")
     }
 
-    private fun newEnvironment(next: RuntimeEnvironment?): RuntimeEnvironment = RuntimeEnvironment(mutableMapOf(), next)
+    private fun newEnvironment(next: VariableEnvironment?): VariableEnvironment = VariableEnvironment(mutableMapOf(), next)
 
     /**
      * Execute `main` function. Throw runtime exception if a program has no `main` function.
