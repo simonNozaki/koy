@@ -8,7 +8,7 @@ import io.github.simonnozaki.koy.UnaryOperator.*
 
 // TODO builtin functions
 class Interpreter(
-    private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
+    private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(mutableMapOf()),
     private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null)
 ) {
     /**
@@ -16,7 +16,7 @@ class Interpreter(
      */
     fun getValue(name: String) = variableEnvironment.bindings[name]
 
-    fun getFunction(name: String) = functionEnvironment[name]
+    fun getFunction(name: String) = functionEnvironment.bindings[name]
 
     fun getFunctions() = functionEnvironment
 
@@ -104,7 +104,7 @@ class Interpreter(
             when (value) {
                 is Value.Function -> {
                     val def = defineFunction(expression.name, value.args, value.body)
-                    functionEnvironment[expression.name] = def
+                    functionEnvironment.setAsVal(expression.name, def)
                 }
                 else -> variableEnvironment.setAsVal(expression.name, value)
             }
@@ -115,7 +115,7 @@ class Interpreter(
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
             if (bindingOptions != null) {
-                if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment[expression.name] != null) {
+                if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment.hasDeclaration(expression.name)) {
                     throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
                 }
                 bindingOptions[expression.name] = value
@@ -124,7 +124,7 @@ class Interpreter(
                 when (value) {
                     is Value.Function -> {
                         val def = defineFunction(expression.name, value.args, value.body)
-                        functionEnvironment[expression.name] = def
+                        functionEnvironment.bindings[expression.name] = def
                     }
                     else -> variableEnvironment.bindings[expression.name] = value
                 }
@@ -163,7 +163,7 @@ class Interpreter(
             return v
         }
         if (expression is FunctionCall) {
-            val definition = functionEnvironment[expression.name] ?: throw KoyLangRuntimeException("Function [ ${expression.name} ] not found")
+            val definition = functionEnvironment.getDefinition(expression.name)
 
             val actualParams = expression.args
             val formalParams = definition.args
@@ -183,8 +183,7 @@ class Interpreter(
             return result
         }
         if (expression is LabeledCall) {
-            val definition = functionEnvironment[expression.name]
-                ?: throw KoyLangRuntimeException("Function ${expression.name} is not defined.")
+            val definition = functionEnvironment.getDefinition(expression.name)
             // Calling parameter map: label name -> param
             // e.g. f([x=1, y=2]) -> { x: 1, y: 2 }
             val labelMappings = expression.args.associate { it.name to it.parameter }
@@ -222,16 +221,12 @@ class Interpreter(
         val topLevels = program.definitions
         for (topLevel in topLevels) {
             when (topLevel) {
-                is FunctionDefinition -> functionEnvironment[topLevel.name] = topLevel
+                is FunctionDefinition -> functionEnvironment.setAsVal(topLevel.name, topLevel)
                 is GlobalVariableDefinition -> variableEnvironment.bindings[topLevel.name] = interpret(topLevel.expression)
             }
         }
-        val mainFunction = functionEnvironment["main"]
+        val mainFunction = functionEnvironment.getDefinition("main")
 
-        return if (mainFunction != null) {
-            interpret(mainFunction.body)
-        } else {
-            throw KoyLangRuntimeException("This program should have main() function.")
-        }
+        return interpret(mainFunction.body)
     }
 }

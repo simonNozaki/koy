@@ -245,8 +245,8 @@ class ParsersTests {
             statements.forEach { interpreter.interpret(it) }
             val functions = interpreter.getFunctions()
 
-            assertEquals("l", functions["l"]?.name)
-            assertEquals("x", functions["l"]?.args?.get(0))
+            assertEquals("l", functions.getDefinition("l").name)
+            assertEquals("x", functions.getDefinition("l").args[0])
         }
 
 
