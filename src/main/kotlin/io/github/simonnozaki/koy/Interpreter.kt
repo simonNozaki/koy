@@ -14,9 +14,9 @@ class Interpreter(
     /**
      * Return the value from interpreter variable environment
      */
-    fun getValue(name: String) = variableEnvironment.bindings[name]
+    fun getValue(name: String) = variableEnvironment.findBindings(name)?.get(name)
 
-    fun getFunction(name: String) = functionEnvironment.bindings[name]
+    fun getFunction(name: String) = functionEnvironment.findBinding(name)
 
     fun getFunctions() = functionEnvironment
 
@@ -110,25 +110,31 @@ class Interpreter(
             }
             return value
         }
+        if (expression is MutableValDeclaration) {
+            val value = interpret(expression.expression)
+            if (variableEnvironment.hasDeclaration(expression.name)) {
+                throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
+            }
+            when (value) {
+                is Value.Function -> {
+                    val def = defineFunction(expression.name, value.args, value.body)
+                    functionEnvironment.bindings[expression.name] = def
+                }
+                else -> variableEnvironment.bindings[expression.name] = value
+            }
+            return value
+        }
         if (expression is Assignment) {
             // Assign variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
-            if (bindingOptions != null) {
-                if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment.hasDeclaration(expression.name)) {
-                    throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
-                }
-                bindingOptions[expression.name] = value
-            } else {
-                // Function literal is assigned as `FunctionDefinition`, so check value type if is `Value.Function`.
-                when (value) {
-                    is Value.Function -> {
-                        val def = defineFunction(expression.name, value.args, value.body)
-                        functionEnvironment.bindings[expression.name] = def
-                    }
-                    else -> variableEnvironment.bindings[expression.name] = value
-                }
+            if (bindingOptions == null) {
+                throw KoyLangRuntimeException("Declaration [ ${expression.name} is not defined. ]")
             }
+            if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment.hasDeclaration(expression.name)) {
+                throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
+            }
+            bindingOptions[expression.name] = value
             return value
         }
         if (expression is PrintLn) {

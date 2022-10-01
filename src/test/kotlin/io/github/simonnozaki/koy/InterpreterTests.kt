@@ -104,8 +104,9 @@ class InterpreterTests {
     @Test
     fun can_increment_in_while() {
         val statements = listOf(
-            // i = 0;
-            assign("i", IntegerLiteral(0)),
+            // mutable val i = 0;
+//            assign("i", IntegerLiteral(0)),
+            MutableValDeclaration("i", IntegerLiteral(0)),
             // while(x < 10) {
             //   i = i + 1;
             // }
@@ -122,8 +123,8 @@ class InterpreterTests {
 
     @Test
     fun can_define_array_literal() {
-        // a = [1, 3, 5]
-        val statement = assign("a", Array(IntegerLiteral(1), IntegerLiteral(3), IntegerLiteral(5)))
+        // val a = [1, 3, 5]
+        val statement = ValDeclaration("a", Array(IntegerLiteral(1), IntegerLiteral(3), IntegerLiteral(5)))
         interpreter.interpret(statement)
 
         val arrayItems = interpreter.getValue("a")?.asArray()
@@ -133,8 +134,8 @@ class InterpreterTests {
     @Test
     fun can_evaluate_object() {
         val interpreter = Interpreter()
-        // o = { a: 1, b: "1" }
-        val statement = assign(
+        // val o = { a: 1, b: "1" }
+        val statement = ValDeclaration(
             "o",
             Object(
                 mapOf(
@@ -153,10 +154,10 @@ class InterpreterTests {
     @Test
     fun `can define function literal`() {
         val interpreter = Interpreter()
-        // f = { x, y ->
+        // val f = { x, y ->
         //   x+y;
         // };
-        val statement = assign(
+        val statement = ValDeclaration(
             "f",
             FunctionLiteral(
                 listOf("x", "y"),
@@ -171,10 +172,10 @@ class InterpreterTests {
         val f = interpreter.getFunction("f")
         println(f)
 
-        assertEquals("f", f?.name)
+        assertEquals("f", f.name)
         assertEquals(
             true,
-            f?.args?.containsAll(
+            f.args?.containsAll(
                 listOf(
                     "x",
                     "y"
@@ -187,14 +188,14 @@ class InterpreterTests {
     fun `can increment and decrement`() {
         val interpreter = Interpreter()
         listOf(
-            // n = 1;
-            // n2 = n++;
-            // m = 1;
-            // m2 = m--;
-            assign("n", integer(1)),
-            assign("n2", increment("n")),
-            assign("m", integer(1)),
-            assign("m2", decrement("m"),)
+            // val n = 1;
+            // val n2 = n++;
+            // val m = 1;
+            // val m2 = m--;
+            ValDeclaration("n", integer(1)),
+            ValDeclaration("n2", increment("n")),
+            ValDeclaration("m", integer(1)),
+            ValDeclaration("m2", decrement("m"),)
         ).forEach { interpreter.interpret(it) }
         println(interpreter.getVariables())
 

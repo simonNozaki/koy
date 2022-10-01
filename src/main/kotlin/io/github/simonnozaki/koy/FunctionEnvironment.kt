@@ -24,4 +24,16 @@ data class FunctionEnvironment(
         }
         throw KoyLangRuntimeException("Function [ $key ] not found")
     }
+
+    fun findBinding(key: String): FunctionDefinition {
+        val def = bindings[key]
+        val valDef = valFunctions[key]
+        if (def != null) {
+            return def
+        }
+        if (valDef != null) {
+            return valDef
+        }
+        throw KoyLangRuntimeException("")
+    }
 }
