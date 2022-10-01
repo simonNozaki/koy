@@ -19,13 +19,26 @@ Original implementation is here: https://github.com/kmizu/toys
 val f = |msg| {
   "Hello, " + msg;
 };
+
+// This will fail to assign
+f = || {
+  "Hello, Koy";
+};
+```
+
+When declaring re-assignable variable, please add `mutable` keyword.
+```
+mutable val i = 0;
+while (i < 10) {
+  ++i;
+}
 ```
 
 ## Control Flow
 Standard control flows is all expressions and therefore return last value of blocks.
 ### While
 ```
-i = 0;
+mutable val i = 0;
 while (i < 0) {
   i = i + 1;
 }
@@ -49,6 +62,8 @@ for (i in 0 to 10) {
 } 
 ```
 
+In the example above, identifier `i` (for a counter of `for-in`) is defined as `mutable val i = 0`. 
+
 ## Function
 Definition. Program should have `main` function. It also defines function by function literal.
 ### Top level function definition
@@ -69,16 +84,16 @@ fn main() {
 ### Function literal(or lambda)
 Simple function literal sample
 ```
-square = |n| {
+val square = |n| {
   n * n;
 };
 
-result = square();
+val result = square();
 ```
 
 Closure-like sample
 ```
-Age = |v| {
+val Age = |v| {
   _v = v;
   {
     v: _v,
@@ -88,7 +103,7 @@ Age = |v| {
   };
 };
 
-now = Age(21);
+val now = Age(21);
 println(now);
 ```
 
