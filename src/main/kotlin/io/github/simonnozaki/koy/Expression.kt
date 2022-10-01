@@ -47,6 +47,11 @@ sealed class Expression {
         val expression: Expression
     ) : Expression()
 
+    data class MutableValDeclaration(
+        val name: String,
+        val expression: Expression
+    ) : Expression()
+
     data class Identifier(
         val name: String
     ) : Expression()

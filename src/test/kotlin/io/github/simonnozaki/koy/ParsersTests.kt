@@ -102,7 +102,7 @@ class ParsersTests {
             val interpreter = Interpreter()
             // Need to trim indents since `lines` does not ignore spaces
             val program = """
-            i = 0;
+            mutable val i = 0;
             while(i < 10) {
               i = i + 1;
             }
@@ -120,7 +120,7 @@ class ParsersTests {
         fun should_be_else_clause() {
             val interpreter = Interpreter()
             val source = """
-                x = 5;
+                mutable val x = 5;
                 if (x < 5) {
                   x = 1;
                 } else {
@@ -168,7 +168,7 @@ class ParsersTests {
         fun can_assign_array_literal() {
             val interpreter = Interpreter()
             val source = """
-                odd = [1, 3, 5]; 
+            mutable val odd = [1, 3, 5]; 
             """.trimIndent()
             println(source)
             val statements = Parsers.lines().parse(Input.of(source)).result
@@ -192,8 +192,8 @@ class ParsersTests {
         fun can_parse_tf() {
             val interpreter = Interpreter()
             val source = """
-            t = true;
-            a = false;
+            mutable val t = true;
+            mutable val a = false;
             """.trimIndent()
             val statements = Parsers.lines().parse(Input.of(source)).result
             statements.forEach { interpreter.interpret(it) }
@@ -205,22 +205,9 @@ class ParsersTests {
         }
 
         @Test
-        fun can_print_string() {
-            val interpreter = Interpreter()
-            val source = """
-            t = "text";
-            """.trimIndent()
-            val statements = Parsers.lines().parse(Input.of(source)).result
-            println(statements)
-            statements.forEach { interpreter.interpret(it) }
-
-            assertEquals("text", interpreter.getValue("t")?.asString()?.value)
-        }
-
-        @Test
         fun `can assign and call object literal`() {
             val source = """
-            o = {
+            val o = {
               id: 1,
               title: "Get ready to meeting"
             };
@@ -237,7 +224,7 @@ class ParsersTests {
             val interpreter = Interpreter()
             // Lambda unused parameter is shortcuttable
             val source = """
-            l = |x| {
+            val l = |x| {
               "Hello, " + x; 
             };
             """.trimIndent()
@@ -249,15 +236,14 @@ class ParsersTests {
             assertEquals("x", functions.getDefinition("l").args[0])
         }
 
-
         @Test
         fun `can increment and decrement`() {
             val interpreter = Interpreter()
             val source = """
-            n = 1;
-            n2 = ++n;
-            m = 1;
-            m2 = --m;
+            val n = 1;
+            val n2 = ++n;
+            val m = 1;
+            val m2 = --m;
             """.trimIndent()
             Parsers.lines()
                 .parse(Input.of(source))
@@ -296,6 +282,22 @@ class ParsersTests {
                     .result
                     .forEach { interpreter.interpret(it) }
             }
+        }
+
+        @Test
+        fun `can assign mutable variable`() {
+            val interpreter = Interpreter()
+            val source = """
+            mutable val n = 0;
+            n = 1;
+            """.trimIndent()
+            Parsers.lines()
+                .parse(Input.of(source))
+                .result
+                .forEach { interpreter.interpret(it) }
+
+            println(interpreter.getVariables())
+            assertEquals(1, interpreter.getValue("n")?.asInt()?.value)
         }
     }
 

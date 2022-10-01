@@ -12,7 +12,6 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
 
-// TODO val assignment
 // TODO property call by dot operator as method call
 // TODO comment out
 object Parsers {
@@ -47,6 +46,7 @@ object Parsers {
     private val IN: Parser<Char, Unit> = string("in").then(SPACINGS)
     private val TO: Parser<Char, Unit> = string("to").then(SPACINGS)
     private val VAL: Parser<Char, Unit> = string("val").then(SPACINGS)
+    private val MUTABLE: Parser<Char, Unit> = string("mutable").then(SPACINGS)
     private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
     private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
@@ -146,7 +146,7 @@ object Parsers {
      * println <- println '(' expression ')' ';'
      * ```
      */
-    fun println(): Parser<Char, Expression> {
+    private fun println(): Parser<Char, Expression> {
         return PRINTLN.bind {
             expression().between(LPAREN, RPAREN).bind { param ->
                 SEMI_COLON.map { PrintLn(param) as Expression }
@@ -166,10 +166,11 @@ object Parsers {
      *   / expressionLine
      * ```
      */
-    fun line(): Parser<Char, Expression> {
+    private fun line(): Parser<Char, Expression> {
         return println()
             .or(assignment())
-            .or(valAssignment())
+            .or(valDeclaration())
+            .or(mutableValDeclaration())
             .or(expressionLine())
             .or(blockExpression())
             .or(ifExpression())
@@ -204,7 +205,7 @@ object Parsers {
     }
 
     /**
-     * # val assignment
+     * # val declaration
      * val assignment can assign variable only at once.
      * ## PEG
      * ```
@@ -215,10 +216,30 @@ object Parsers {
      * val f = |x, y| { x + y; };
      * ```
      */
-    fun valAssignment(): Parser<Char, ValDeclaration> {
+    private fun valDeclaration(): Parser<Char, ValDeclaration> {
         return VAL.then(IDENT).bind { name ->
             EQ.then(expression()).bind { expr ->
                 SEMI_COLON.map { ValDeclaration(name, expr) }
+            }
+        }.attempt()
+    }
+
+    /**
+     * # mutable val declaration
+     * mutable val assignment can assign variable as re-assignable value.
+     * ## PEG
+     * ```
+     * valAssignment <- 'mutable' 'val' identifier '=' expression ';'
+     * ```
+     * ## Sample syntax
+     * ```
+     * val f = |x, y| { x + y; };
+     * ```
+     */
+    private fun mutableValDeclaration(): Parser<Char, MutableValDeclaration> {
+        return MUTABLE.then(VAL).then(IDENT).bind { name ->
+            EQ.then(expression()).bind { expr ->
+                SEMI_COLON.map { MutableValDeclaration(name, expr) }
             }
         }.attempt()
     }
@@ -447,7 +468,7 @@ object Parsers {
                     TO.then(expression()).bind { to ->
                         RPAREN.then(line()).map {
                             Block(
-                                assign(name, from),
+                                MutableValDeclaration(name, from),
                                 While(
                                     lessThan(identifier(name), to),
                                     Block(
