@@ -13,6 +13,14 @@ Original implementation is here: https://github.com/kmizu/toys
 - `Object` : `{ x: 1, y: "y" }`
 - `Function` : `|x| -> { x * x; };`
 
+## Assignment
+`val` declaration creates immutable variable, so it can not accept reassign.
+```
+val f = |msg| {
+  "Hello, " + msg;
+};
+```
+
 ## Control Flow
 Standard control flows is all expressions and therefore return last value of blocks.
 ### While

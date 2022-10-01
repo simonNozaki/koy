@@ -9,10 +9,12 @@ import org.javafp.parsecj.Text.regex
 import org.javafp.parsecj.Text.string
 import org.javafp.parsecj.Text.wspace
 import java.util.function.BinaryOperator
+import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
+import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
 
+// TODO val assignment
 // TODO property call by dot operator as method call
 // TODO comment out
-// TODO Lambda is compatible with higer kind function?
 object Parsers {
     /**
      * 1st: alphabet + _
@@ -33,6 +35,8 @@ object Parsers {
     private val LT_EQ: Parser<Char, Unit> = string("<=").then(SPACINGS)
     private val GT: Parser<Char, Unit> = string(">").then(SPACINGS)
     private val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
+    private val INCREMENT: Parser<Char, Unit> = string("++").then(SPACINGS)
+    private val DECREMENT: Parser<Char, Unit> = string("--").then(SPACINGS)
     private val GLOBAL: Parser<Char, Unit> = string("global").then(SPACINGS)
     private val FN: Parser<Char, Unit> = string("fn").then(SPACINGS)
     private val PRINTLN: Parser<Char, Unit> = string("println").then(SPACINGS)
@@ -42,6 +46,7 @@ object Parsers {
     private val FOR: Parser<Char, Unit> = string("for").then(SPACINGS)
     private val IN: Parser<Char, Unit> = string("in").then(SPACINGS)
     private val TO: Parser<Char, Unit> = string("to").then(SPACINGS)
+    private val VAL: Parser<Char, Unit> = string("val").then(SPACINGS)
     private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
     private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
@@ -69,15 +74,7 @@ object Parsers {
     }.bind { v -> SPACINGS.map { v } }
 
     /**
-     * # Array literal
-     * ## PEG
-     * ```
      * arrayLiteral <- '[' (expression(, expression)*)? ']'
-     * ```
-     * ## Sample syntax
-     * ```
-     * odd = [1, 3, 5];
-     * ```
      */
     private fun arrayLiteral(): Parser<Char, ArrayLiteral> {
         return LBRACKET.bind {
@@ -88,18 +85,8 @@ object Parsers {
     }
 
     /**
-     * # Object literal
-     * ## PEG
      * ```
      * objectLiteral <- '{' (identifier ':' expression (,identifier ':' expression*)? '}'
-     * ```
-     *
-     * ## Sample syntax
-     * ```
-     * {
-     *   name: "Koy",
-     *   buildAt: "2022-09-25"
-     * }
      * ```
      */
     // TODO check prop names duplication
@@ -120,7 +107,7 @@ object Parsers {
      *
      * ## PEG
      * ```
-     * functionLiteral <- '|' (identifier(, identifier)*)? '|' blockExpression
+     * functionLiteral <- (identifier(, identifier)*)? '->' blockExpression
      * ```
      * ## Sample syntax
      * ```ky
@@ -138,11 +125,28 @@ object Parsers {
     }
 
     /**
+     * # Unary operation
+     * ## PEG
+     * ```
+     * unaryExpression <- identifier'++' / identifier'--'
+     * ```
+     */
+    fun unary(): Parser<Char, Expression> {
+        val increment: Parser<Char, Expression> = INCREMENT.bind {
+            IDENT.map { name -> UnaryExpression(UnaryOperator.INCREMENT, Identifier(name)) }
+        }
+        val decrement: Parser<Char, Expression> = DECREMENT.bind {
+            IDENT.map { name -> UnaryExpression(UnaryOperator.DECREMENT, Identifier(name)) }
+        }
+        return increment.or(decrement)
+    }
+
+    /**
      * ```
      * println <- println '(' expression ')' ';'
      * ```
      */
-    private fun println(): Parser<Char, Expression> {
+    fun println(): Parser<Char, Expression> {
         return PRINTLN.bind {
             expression().between(LPAREN, RPAREN).bind { param ->
                 SEMI_COLON.map { PrintLn(param) as Expression }
@@ -151,9 +155,7 @@ object Parsers {
     }
 
     /**
-     * # Line definition
-     * The unit that is equal to one line. Expressions are all as one line.
-     * ## PEG
+     * 行の定義、1行とカウントされる式の単位
      * ```
      * line <- println
      *   / ifExpression
@@ -167,11 +169,12 @@ object Parsers {
     fun line(): Parser<Char, Expression> {
         return println()
             .or(assignment())
+            .or(valAssignment())
+            .or(expressionLine())
             .or(blockExpression())
             .or(ifExpression())
             .or(forInExpression())
             .or(whileExpression())
-            .or(expressionLine())
     }
 
     /**
@@ -201,6 +204,26 @@ object Parsers {
     }
 
     /**
+     * # val assignment
+     * val assignment can assign variable only at once.
+     * ## PEG
+     * ```
+     * valAssignment <- 'val' identifier '=' expression ';'
+     * ```
+     * ## Sample syntax
+     * ```
+     * val f = |x, y| { x + y; };
+     * ```
+     */
+    fun valAssignment(): Parser<Char, ValDeclaration> {
+        return VAL.then(IDENT).bind { name ->
+            EQ.then(expression()).bind { expr ->
+                SEMI_COLON.map { ValDeclaration(name, expr) }
+            }
+        }.attempt()
+    }
+
+    /**
      * `expressionLine` can accept semicolon and new line as symbol for one line.
      * ```
      * expressionLine <- expression ';' / '\n'
@@ -211,15 +234,10 @@ object Parsers {
     }
 
     /**
-     * # Function call
-     * ## PEG
+     * 関数呼び出し
+     * `(expression (',' expression)*)?` で複数の式が引数としてマッチする
      * ```
      * functionCall <- identifier '(' (expression (',' expression)*)? ')'
-     * ```
-     *
-     * ## Sample syntax
-     * ```
-     * factorial(5)
      * ```
      */
     private fun functionCall(): Parser<Char, FunctionCall> {
@@ -385,12 +403,13 @@ object Parsers {
             .or(integer)
             .or(bool)
             .or(string)
-            .or(functionCall())
-            .or(labeledCall())
-            .or(identifier())
-            .or(arrayLiteral())
-            .or(functionLiteral())
-            .or(objectLiteral())
+            .or(functionCall())    // identifier '(' identifier ')'
+            .or(labeledCall())     // identifier '[' identifier '=' expression ']'
+            .or(identifier())      // identifier
+            .or(unary())           // ++identifier / --identifier
+            .or(arrayLiteral())    // '[' (expression) ']'
+            .or(objectLiteral())   // '{' identifier ':' expression '}'
+            .or(functionLiteral()) // '|' identifier '|' blockExpression
     }
 
     /**

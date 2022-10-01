@@ -31,6 +31,13 @@ fun main() {
       };
     };
     now = Age(29);
+    
+    createFunction = |msg| {
+      || {
+        "Hello, " + msg;
+      };
+    };
+    f = createFunction("Koy");
     """.trimIndent()
     Parsers.lines()
         .parse(Input.of(linesSource))

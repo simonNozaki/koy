@@ -2,18 +2,21 @@ package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.Expression.*
 import io.github.simonnozaki.koy.Operator.*
+import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
+import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
+import io.github.simonnozaki.koy.UnaryOperator.*
 
-// TODO add a printer of tree node for debug logging
+// TODO builtin functions
 class Interpreter(
-    private val functionEnvironment: MutableMap<String, FunctionDefinition> = mutableMapOf(),
-    private var variableEnvironment: Environment = Environment(mutableMapOf(), null)
+    private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(mutableMapOf()),
+    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null)
 ) {
     /**
      * Return the value from interpreter variable environment
      */
     fun getValue(name: String) = variableEnvironment.bindings[name]
 
-    fun getFunction(name: String) = functionEnvironment[name]
+    fun getFunction(name: String) = functionEnvironment.bindings[name]
 
     fun getFunctions() = functionEnvironment
 
@@ -50,6 +53,20 @@ class Interpreter(
     }
 
     fun interpret(expression: Expression): Value {
+        println("|- $expression")
+        if (expression is UnaryExpression) {
+            val identifier = try {
+                interpret(expression.value).asInt().value
+            } catch (e: Exception) {
+                throw KoyLangRuntimeException("Unary operation should apply with integer variables, error => $e")
+            }
+
+            val v = when (expression.operator) {
+                INCREMENT -> identifier + 1
+                DECREMENT -> identifier - 1
+            }
+            return Value.of(v)
+        }
         if (expression is BinaryExpression) {
             return getBinaryOpsResult(expression)
         }
@@ -79,22 +96,38 @@ class Interpreter(
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
         }
+        if (expression is ValDeclaration) {
+            val value = interpret(expression.expression)
+            if (variableEnvironment.hasDeclaration(expression.name)) {
+                throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
+            }
+            when (value) {
+                is Value.Function -> {
+                    val def = defineFunction(expression.name, value.args, value.body)
+                    functionEnvironment.setAsVal(expression.name, def)
+                }
+                else -> variableEnvironment.setAsVal(expression.name, value)
+            }
+            return value
+        }
         if (expression is Assignment) {
             // Assign variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
             if (bindingOptions != null) {
+                if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment.hasDeclaration(expression.name)) {
+                    throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
+                }
                 bindingOptions[expression.name] = value
             } else {
                 // Function literal is assigned as `FunctionDefinition`, so check value type if is `Value.Function`.
                 when (value) {
                     is Value.Function -> {
                         val def = defineFunction(expression.name, value.args, value.body)
-                        functionEnvironment[expression.name] = def
+                        functionEnvironment.bindings[expression.name] = def
                     }
                     else -> variableEnvironment.bindings[expression.name] = value
                 }
-                variableEnvironment.bindings[expression.name] = value
             }
             return value
         }
@@ -130,7 +163,7 @@ class Interpreter(
             return v
         }
         if (expression is FunctionCall) {
-            val definition = functionEnvironment[expression.name] ?: throw KoyLangRuntimeException("Function [ ${expression.name} ] not found")
+            val definition = functionEnvironment.getDefinition(expression.name)
 
             val actualParams = expression.args
             val formalParams = definition.args
@@ -150,8 +183,7 @@ class Interpreter(
             return result
         }
         if (expression is LabeledCall) {
-            val definition = functionEnvironment[expression.name]
-                ?: throw KoyLangRuntimeException("Function ${expression.name} is not defined.")
+            val definition = functionEnvironment.getDefinition(expression.name)
             // Calling parameter map: label name -> param
             // e.g. f([x=1, y=2]) -> { x: 1, y: 2 }
             val labelMappings = expression.args.associate { it.name to it.parameter }
@@ -180,7 +212,7 @@ class Interpreter(
         throw KoyLangRuntimeException("Expression $expression can not be parsed.")
     }
 
-    private fun newEnvironment(next: Environment?): Environment = Environment(mutableMapOf(), next)
+    private fun newEnvironment(next: VariableEnvironment?): VariableEnvironment = VariableEnvironment(mutableMapOf(), next)
 
     /**
      * Execute `main` function. Throw runtime exception if a program has no `main` function.
@@ -189,16 +221,12 @@ class Interpreter(
         val topLevels = program.definitions
         for (topLevel in topLevels) {
             when (topLevel) {
-                is FunctionDefinition -> functionEnvironment[topLevel.name] = topLevel
+                is FunctionDefinition -> functionEnvironment.setAsVal(topLevel.name, topLevel)
                 is GlobalVariableDefinition -> variableEnvironment.bindings[topLevel.name] = interpret(topLevel.expression)
             }
         }
-        val mainFunction = functionEnvironment["main"]
+        val mainFunction = functionEnvironment.getDefinition("main")
 
-        return if (mainFunction != null) {
-            interpret(mainFunction.body)
-        } else {
-            throw KoyLangRuntimeException("This program should have main() function.")
-        }
+        return interpret(mainFunction.body)
     }
 }

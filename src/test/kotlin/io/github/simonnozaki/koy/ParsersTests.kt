@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
@@ -244,8 +245,57 @@ class ParsersTests {
             statements.forEach { interpreter.interpret(it) }
             val functions = interpreter.getFunctions()
 
-            assertEquals("l", functions["l"]?.name)
-            assertEquals("x", functions["l"]?.args?.get(0))
+            assertEquals("l", functions.getDefinition("l").name)
+            assertEquals("x", functions.getDefinition("l").args[0])
+        }
+
+
+        @Test
+        fun `can increment and decrement`() {
+            val interpreter = Interpreter()
+            val source = """
+            n = 1;
+            n2 = ++n;
+            m = 1;
+            m2 = --m;
+            """.trimIndent()
+            Parsers.lines()
+                .parse(Input.of(source))
+                .result
+                .forEach { interpreter.interpret(it) }
+
+            assertEquals(2, interpreter.getValue("n2")?.asInt()?.value)
+            assertEquals(0, interpreter.getValue("m2")?.asInt()?.value)
+        }
+
+        @Test
+        fun `can not reassign val declaration`() {
+            assertThrows<KoyLangRuntimeException> ("Declaration [ n ] is already existed, so can not declare again.") {
+                val interpreter = Interpreter()
+                val source = """
+                val n = 0;
+                n = 1;
+                """.trimIndent()
+                Parsers.lines()
+                    .parse(Input.of(source))
+                    .result
+                    .forEach { interpreter.interpret(it) }
+            }
+        }
+
+        @Test
+        fun `can not redeclare val variable`() {
+            assertThrows<KoyLangRuntimeException> ("Declaration [ n ] is already existed, so can not declare again.") {
+                val interpreter = Interpreter()
+                val source = """
+                val n = 0;
+                val n = 1;
+                """.trimIndent()
+                Parsers.lines()
+                    .parse(Input.of(source))
+                    .result
+                    .forEach { interpreter.interpret(it) }
+            }
         }
     }
 

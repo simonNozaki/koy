@@ -32,7 +32,17 @@ sealed class Expression {
         val rhs: Expression
     ) : Expression()
 
+    data class UnaryExpression(
+        val operator: UnaryOperator,
+        val value: Expression
+    ) : Expression()
+
     data class Assignment(
+        val name: String,
+        val expression: Expression
+    ) : Expression()
+
+    data class ValDeclaration(
         val name: String,
         val expression: Expression
     ) : Expression()
@@ -74,17 +84,4 @@ sealed class Expression {
     data class PrintLn(
         val arg: Expression
     ) : Expression()
-
-    sealed class TopLevel
-
-    data class FunctionDefinition(
-        val name: String,
-        val args: List<String>,
-        val body: Expression
-    ) : TopLevel()
-
-    data class GlobalVariableDefinition(
-        val name: String,
-        val expression: Expression
-    ) : TopLevel()
 }

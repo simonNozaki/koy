@@ -1,6 +1,7 @@
 package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.Expression.*
+import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 
 fun add(lhs: Expression, rhs: Expression): BinaryExpression {
     return BinaryExpression(Operator.ADD, lhs, rhs)
@@ -52,16 +53,15 @@ fun Println(expression: Expression) = PrintLn(expression)
 
 fun defineFunction(name: String, args: List<String>, body: Expression) = FunctionDefinition(name, args, body)
 
+fun increment(name: String) = UnaryExpression(UnaryOperator.INCREMENT, identifier(name))
+
+fun decrement(name: String) = UnaryExpression(UnaryOperator.DECREMENT, identifier(name))
+
 fun If(
     condition: Expression,
     thenClause: Expression,
     elseClause: Expression?
 ): IfExpression = IfExpression(condition, thenClause, elseClause)
-
-fun If(
-    condition: Expression,
-    thenClause: Expression
-): IfExpression = IfExpression(condition, thenClause, null)
 
 fun While(condition: Expression, body: Expression) = WhileExpression(condition, body)
 
@@ -69,21 +69,3 @@ data class Program(
     val definitions: List<TopLevel>
 )
 
-data class Environment(
-    val bindings: MutableMap<String, Value>,
-    val next: Environment?
-) {
-    /**
-     * Get values map from variable name along to `Environment` chaining
-     * @param name
-     */
-    fun findBindings(name: String): MutableMap<String, Value>? {
-        if (bindings[name] != null) {
-            return bindings
-        }
-        if (next != null) {
-            return next.findBindings(name)
-        }
-        return null
-    }
-}
