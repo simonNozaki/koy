@@ -12,6 +12,8 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
+// TODO and/or operation for boolean expression
+// TODO Tuple Literal, set literal
 // TODO property call by dot operator as method call
 // TODO comment out
 object Parsers {
@@ -36,7 +38,6 @@ object Parsers {
     private val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
     private val INCREMENT: Parser<Char, Unit> = string("++").then(SPACINGS)
     private val DECREMENT: Parser<Char, Unit> = string("--").then(SPACINGS)
-    private val GLOBAL: Parser<Char, Unit> = string("global").then(SPACINGS)
     private val FN: Parser<Char, Unit> = string("fn").then(SPACINGS)
     private val PRINTLN: Parser<Char, Unit> = string("println").then(SPACINGS)
     private val IF: Parser<Char, Unit> = string("if").then(SPACINGS)
@@ -61,6 +62,7 @@ object Parsers {
     private val RBRACKET: Parser<Char, Unit> = string("]").then(SPACINGS)
     private val D_QUOTE: Parser<Char, Unit> = string("\"").then(SPACINGS)
     private val PIPE: Parser<Char, Unit> = string("|").then(SPACINGS)
+    private val ARROW: Parser<Char, Unit> = string("->").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v -> SPACINGS.map { v } }
@@ -131,7 +133,7 @@ object Parsers {
      * unaryExpression <- identifier'++' / identifier'--'
      * ```
      */
-    fun unary(): Parser<Char, Expression> {
+    private fun unary(): Parser<Char, Expression> {
         val increment: Parser<Char, Expression> = INCREMENT.bind {
             IDENT.map { name -> UnaryExpression(UnaryOperator.INCREMENT, Identifier(name)) }
         }
