@@ -7,14 +7,27 @@ data class FunctionEnvironment(
     val bindings: MutableMap<String, FunctionDefinition> = mutableMapOf(),
     private val valFunctions: MutableMap<String, FunctionDefinition> = mutableMapOf()
 ) {
+    /**
+     * Set variable to environment as `val`
+     */
     fun setAsVal(key: String, definition: FunctionDefinition) {
         valFunctions[key] = definition
     }
 
     /**
+     * Set variable to environment as `mutable val`
+     */
+    fun setMutableVal(key: String, definition: FunctionDefinition) {
+        if (hasDeclaration(key)) {
+            throw KoyLangRuntimeException("Declaration [ $key ] is already existed, so can not declare again.")
+        }
+        bindings[key] = definition
+    }
+
+    /**
      * Return true if the identifier of `key` already exists.
      */
-    fun hasDeclaration(key: String) = bindings[key] != null && valFunctions[key] != null
+    private fun hasDeclaration(key: String) = bindings[key] != null || valFunctions[key] != null
 
     /**
      * Return function definition from `mutable val` or `val` declaration.
@@ -40,6 +53,6 @@ data class FunctionEnvironment(
         if (def != null) {
             return def
         }
-        throw KoyLangRuntimeException("Declaration [ $key ] is not defined.")
+        throw KoyLangRuntimeException("Definition [ $key ] is not defined.")
     }
 }

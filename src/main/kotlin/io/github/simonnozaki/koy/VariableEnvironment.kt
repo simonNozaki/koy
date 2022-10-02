@@ -9,11 +9,32 @@ data class VariableEnvironment(
     /**
      * Return true if the identifier of `key` already exists.
      */
-    fun hasDeclaration(key: String): Boolean = findBindings(key) != null && immutables[key] != null
+    private fun hasDeclaration(key: String): Boolean = findBindings(key) != null
 
-    fun setAsVal(key: String, value: Value) {
+    /**
+     * Set variable to environment as `val`
+     */
+    fun setVal(key: String, value: Value) {
+        if (findBindings(key) != null) {
+            throw KoyLangRuntimeException("Declaration [ $key ] is already existed, so can not declare again.")
+        }
         immutables[key] = value
     }
+
+    /**
+     * Set variable to environment as `mutable val`
+     */
+    fun setMutableVal(key: String, value: Value) {
+        if (hasDeclaration(key)) {
+            throw KoyLangRuntimeException("Declaration [ $key ] is already existed, so can not declare again.")
+        }
+        bindings[key] = value
+    }
+
+    /**
+     * Return true if there is a variable of `key`.
+     */
+    fun isNotReAssignable(key: String): Boolean = immutables[key] != null
 
     /**
      * Get values map from variable name along to `Environment` chaining

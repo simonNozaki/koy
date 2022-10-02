@@ -39,7 +39,7 @@ class ParsersTests {
         fun should_print_global_variable() {
             val interpreter = Interpreter()
             val source = """
-            global x = 10;
+            val x = 10;
             
             fn print(v) {
               println(v);
@@ -276,6 +276,21 @@ class ParsersTests {
                 val source = """
                 val n = 0;
                 val n = 1;
+                """.trimIndent()
+                Parsers.lines()
+                    .parse(Input.of(source))
+                    .result
+                    .forEach { interpreter.interpret(it) }
+            }
+        }
+
+        @Test
+        fun `can not redeclare mutable val variable`() {
+            assertThrows<KoyLangRuntimeException>("Declaration [ n ] is already existed, so can not declare again.") {
+                val interpreter = Interpreter()
+                val source = """
+                mutable val n = 0;
+                mutable val n = 1;
                 """.trimIndent()
                 Parsers.lines()
                     .parse(Input.of(source))
