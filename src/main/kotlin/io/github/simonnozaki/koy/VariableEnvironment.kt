@@ -2,9 +2,9 @@ package io.github.simonnozaki.koy
 
 data class VariableEnvironment(
     val bindings: MutableMap<String, Value>,
-    val next: VariableEnvironment?
-) {
+    val next: VariableEnvironment?,
     private val immutables: MutableMap<String, Value> = mutableMapOf()
+) {
 
     /**
      * Return true if the identifier of `key` already exists.

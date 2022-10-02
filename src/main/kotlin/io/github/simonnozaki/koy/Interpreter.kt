@@ -129,7 +129,7 @@ class Interpreter(
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
             if (bindingOptions == null) {
-                throw KoyLangRuntimeException("Declaration [ ${expression.name} is not defined. ]")
+                throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is not defined.")
             }
             if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment.hasDeclaration(expression.name)) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
