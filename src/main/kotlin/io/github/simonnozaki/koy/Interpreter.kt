@@ -4,6 +4,7 @@ import io.github.simonnozaki.koy.Expression.*
 import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
+import io.github.simonnozaki.koy.TopLevel.GlobalMutableValDefinition
 import io.github.simonnozaki.koy.UnaryOperator.*
 
 // TODO builtin functions
@@ -98,29 +99,23 @@ class Interpreter(
         }
         if (expression is ValDeclaration) {
             val value = interpret(expression.expression)
-            if (variableEnvironment.hasDeclaration(expression.name)) {
-                throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
-            }
             when (value) {
                 is Value.Function -> {
                     val def = defineFunction(expression.name, value.args, value.body)
                     functionEnvironment.setAsVal(expression.name, def)
                 }
-                else -> variableEnvironment.setAsVal(expression.name, value)
+                else -> variableEnvironment.setVal(expression.name, value)
             }
             return value
         }
         if (expression is MutableValDeclaration) {
             val value = interpret(expression.expression)
-            if (variableEnvironment.hasDeclaration(expression.name)) {
-                throw KoyLangRuntimeException("Declaration [ ${expression.name} is already existed, so can not declare again. ]")
-            }
             when (value) {
                 is Value.Function -> {
                     val def = defineFunction(expression.name, value.args, value.body)
-                    functionEnvironment.bindings[expression.name] = def
+                    functionEnvironment.setMutableVal(expression.name, def)
                 }
-                else -> variableEnvironment.bindings[expression.name] = value
+                else -> variableEnvironment.setMutableVal(expression.name, value)
             }
             return value
         }
@@ -131,8 +126,8 @@ class Interpreter(
             if (bindingOptions == null) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is not defined.")
             }
-            if (variableEnvironment.hasDeclaration(expression.name) || functionEnvironment.hasDeclaration(expression.name)) {
-                throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is already existed, so can not declare again.")
+            if (variableEnvironment.isNotReAssignable(expression.name)) {
+                throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration.")
             }
             bindingOptions[expression.name] = value
             return value
@@ -228,7 +223,8 @@ class Interpreter(
         for (topLevel in topLevels) {
             when (topLevel) {
                 is FunctionDefinition -> functionEnvironment.setAsVal(topLevel.name, topLevel)
-                is GlobalVariableDefinition -> variableEnvironment.bindings[topLevel.name] = interpret(topLevel.expression)
+                is GlobalVariableDefinition -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
+                is GlobalMutableValDefinition -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
             }
         }
         val mainFunction = functionEnvironment.getDefinition("main")
