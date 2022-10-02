@@ -10,7 +10,7 @@ import org.javafp.parsecj.Text.string
 import org.javafp.parsecj.Text.wspace
 import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
-import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
+import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
 // TODO property call by dot operator as method call
 // TODO comment out
@@ -324,12 +324,12 @@ object Parsers {
      *   'val' identifier '=' expression;
      * ```
      */
-    private fun valDefinition(): Parser<Char, GlobalVariableDefinition> {
+    private fun valDefinition(): Parser<Char, ValDefinition> {
         val defGlobal = VAL.then(IDENT)
         val defInitializer = EQ.then(expression())
         return defGlobal.bind { name ->
             defInitializer.bind { expression ->
-                SEMI_COLON.map { GlobalVariableDefinition(name, expression) }
+                SEMI_COLON.map { ValDefinition(name, expression) }
             }
         }
     }
@@ -342,12 +342,12 @@ object Parsers {
      *   'mutable' 'val' identifier '=' expression;
      * ```
      */
-    private fun mutableValDefinition(): Parser<Char, GlobalVariableDefinition> {
+    private fun mutableValDefinition(): Parser<Char, ValDefinition> {
         val defGlobal = MUTABLE.then(VAL).then(IDENT)
         val defInitializer = EQ.then(expression())
         return defGlobal.bind { name ->
             defInitializer.bind { expression ->
-                SEMI_COLON.map { GlobalVariableDefinition(name, expression) }
+                SEMI_COLON.map { ValDefinition(name, expression) }
             }
         }
     }

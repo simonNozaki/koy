@@ -3,8 +3,8 @@ package io.github.simonnozaki.koy
 import io.github.simonnozaki.koy.Expression.*
 import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
-import io.github.simonnozaki.koy.TopLevel.GlobalVariableDefinition
-import io.github.simonnozaki.koy.TopLevel.GlobalMutableValDefinition
+import io.github.simonnozaki.koy.TopLevel.ValDefinition
+import io.github.simonnozaki.koy.TopLevel.MutableValDefinition
 import io.github.simonnozaki.koy.UnaryOperator.*
 
 // TODO builtin functions
@@ -223,8 +223,8 @@ class Interpreter(
         for (topLevel in topLevels) {
             when (topLevel) {
                 is FunctionDefinition -> functionEnvironment.setAsVal(topLevel.name, topLevel)
-                is GlobalVariableDefinition -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
-                is GlobalMutableValDefinition -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
+                is ValDefinition -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
+                is MutableValDefinition -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
             }
         }
         val mainFunction = functionEnvironment.getDefinition("main")

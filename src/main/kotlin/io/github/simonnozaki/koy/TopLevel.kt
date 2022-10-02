@@ -7,12 +7,12 @@ sealed class TopLevel {
         val body: Expression
     ) : TopLevel()
 
-    data class GlobalVariableDefinition(
+    data class ValDefinition(
         val name: String,
         val expression: Expression
     ) : TopLevel()
 
-    data class GlobalMutableValDefinition(
+    data class MutableValDefinition(
         val name: String,
         val expression: Expression
     ) : TopLevel()
