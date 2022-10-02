@@ -216,6 +216,7 @@ class ParsersTests {
             val interpreter = Interpreter()
             statements.forEach { interpreter.interpret(it) }
 
+            println(interpreter.getVariables())
             assertEquals(1, interpreter.getValue("o")?.asObject()?.value?.get("id")?.asInt()?.value)
         }
 

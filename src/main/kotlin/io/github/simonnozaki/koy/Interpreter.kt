@@ -10,7 +10,8 @@ import io.github.simonnozaki.koy.UnaryOperator.*
 // TODO builtin functions
 class Interpreter(
     private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(mutableMapOf()),
-    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null)
+    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null),
+    private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment()
 ) {
     /**
      * Return the value from interpreter variable environment
@@ -104,6 +105,9 @@ class Interpreter(
                     val def = defineFunction(expression.name, value.args, value.body)
                     functionEnvironment.setAsVal(expression.name, def)
                 }
+                is Value.Object -> {
+                    objectRuntimeEnvironment.setVal(expression.name, value.value)
+                }
                 else -> variableEnvironment.setVal(expression.name, value)
             }
             return value
@@ -115,6 +119,9 @@ class Interpreter(
                     val def = defineFunction(expression.name, value.args, value.body)
                     functionEnvironment.setMutableVal(expression.name, def)
                 }
+                is Value.Object -> {
+                    objectRuntimeEnvironment.setMutableVal(expression.name, value.value)
+                }
                 else -> variableEnvironment.setMutableVal(expression.name, value)
             }
             return value
@@ -122,14 +129,18 @@ class Interpreter(
         if (expression is Assignment) {
             // Assign variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
+            val maybeObject = objectRuntimeEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
-            if (bindingOptions == null) {
+            if (bindingOptions == null || maybeObject == null) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is not defined.")
             }
             if (variableEnvironment.isNotReAssignable(expression.name)) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration.")
             }
-            bindingOptions[expression.name] = value
+            when (value) {
+                is Value.Object -> objectRuntimeEnvironment.mutableValObjects[expression.name] = maybeObject
+                else -> bindingOptions[expression.name] = value
+            }
             return value
         }
         if (expression is PrintLn) {
