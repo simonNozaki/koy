@@ -6,23 +6,23 @@ fun main() {
     val interpreter = Interpreter()
 
     val linesSource = """
-    lang = "koy";
-    msg = "Hello";
+    val lang = "koy";
+    val msg = "Hello";
     println(lang + msg);
     
-    object = {
+    val object = {
       name: "koy",
       influencedBy: ["Koy", "JavaScript", "Kotlin"]
     };
     println(object);
     
-    greet = |msg| {
+    val greet = |msg| {
       "Hello, " + msg;
     };
     greet("Koy");
     
-    Age = |value| {
-      _v = value;
+    val Age = |value| {
+      val _v = value;
       {
         v: _v,
         getOld: |_| {
@@ -30,14 +30,14 @@ fun main() {
         }
       };
     };
-    now = Age(29);
+    val now = Age(29);
     
-    createFunction = |msg| {
+    val createFunction = |msg| {
       || {
         "Hello, " + msg;
       };
     };
-    f = createFunction("Koy");
+    val f = createFunction("Koy");
     """.trimIndent()
     Parsers.lines()
         .parse(Input.of(linesSource))
@@ -56,7 +56,7 @@ fun main() {
     }
     
     fn main() {
-      r = greet("Koy");
+      val r = greet("Koy");
     }
     """.trimIndent()
     val program = Parsers.program().parse(Input.of(programSource))
