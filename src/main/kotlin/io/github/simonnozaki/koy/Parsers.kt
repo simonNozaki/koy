@@ -294,7 +294,9 @@ object Parsers {
      * ```
      */
     private fun topLevelDefinition(): Parser<Char, TopLevel> {
-        return globalVariableDefinition().map { it as TopLevel }.or(functionDefinition().map { it as TopLevel })
+        return valDefinition().map { it as TopLevel }
+            .or(mutableValDefinition().map { it as TopLevel })
+            .or(functionDefinition().map { it as TopLevel })
     }
 
     /**
@@ -315,13 +317,33 @@ object Parsers {
     }
 
     /**
+     * #  val top level definition
+     * ## PEG
      * ```
-     * globalVariableDefinition <-
-     *   'global' identifier '=' expression;
+     * valDefinition <-
+     *   'val' identifier '=' expression;
      * ```
      */
-    private fun globalVariableDefinition(): Parser<Char, GlobalVariableDefinition> {
-        val defGlobal = GLOBAL.then(IDENT)
+    private fun valDefinition(): Parser<Char, GlobalVariableDefinition> {
+        val defGlobal = VAL.then(IDENT)
+        val defInitializer = EQ.then(expression())
+        return defGlobal.bind { name ->
+            defInitializer.bind { expression ->
+                SEMI_COLON.map { GlobalVariableDefinition(name, expression) }
+            }
+        }
+    }
+
+    /**
+     * # mutable val top level definition
+     * ## PEG
+     * ```
+     * mutableValDefinition <-
+     *   'mutable' 'val' identifier '=' expression;
+     * ```
+     */
+    private fun mutableValDefinition(): Parser<Char, GlobalVariableDefinition> {
+        val defGlobal = MUTABLE.then(VAL).then(IDENT)
         val defInitializer = EQ.then(expression())
         return defGlobal.bind { name ->
             defInitializer.bind { expression ->
