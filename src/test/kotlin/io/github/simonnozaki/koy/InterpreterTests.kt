@@ -1,6 +1,7 @@
 package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.Expression.*
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -175,7 +176,7 @@ class InterpreterTests {
         assertEquals("f", f.name)
         assertEquals(
             true,
-            f.args?.containsAll(
+            f.args.containsAll(
                 listOf(
                     "x",
                     "y"
@@ -201,5 +202,27 @@ class InterpreterTests {
 
         assertEquals(2, interpreter.getValue("n2")?.asInt()?.value)
         assertEquals(0, interpreter.getValue("m2")?.asInt()?.value)
+    }
+
+    @Test
+    fun `should be true of logical and`() {
+        // true and true
+        val interpreter = Interpreter()
+        val statement = BinaryExpression(Operator.LOGICAL_AND, BoolLiteral(true), BoolLiteral(true))
+        val result = interpreter.interpret(statement)
+
+        assertTrue(result.isBool())
+        assertTrue(result.asBool().value)
+    }
+
+    @Test
+    fun `should be true of logical or`() {
+        // true and true
+        val interpreter = Interpreter()
+        val statement = BinaryExpression(Operator.LOGICAL_OR, BoolLiteral(true), BoolLiteral(false))
+        val result = interpreter.interpret(statement)
+
+        assertTrue(result.isBool())
+        assertTrue(result.asBool().value)
     }
 }

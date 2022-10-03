@@ -5,7 +5,8 @@ import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 import io.github.simonnozaki.koy.TopLevel.MutableValDefinition
-import io.github.simonnozaki.koy.UnaryOperator.*
+import io.github.simonnozaki.koy.UnaryOperator.INCREMENT
+import io.github.simonnozaki.koy.UnaryOperator.DECREMENT
 
 // TODO builtin functions
 class Interpreter(
@@ -50,6 +51,20 @@ class Interpreter(
             GREATER_OR_EQUAL -> lhs.asInt().value >= rhs.asInt().value
             EQUAL -> lhs.asInt().value == rhs.asInt().value
             NOT_EQUAL -> lhs.asInt().value != rhs.asInt().value
+            LOGICAL_AND -> {
+                if (lhs.isBool() && rhs.isBool()) {
+                    lhs.asBool().value && rhs.asBool().value
+                } else {
+                    throw KoyLangRuntimeException("Both $lhs and $rhs should be boolean.")
+                }
+            }
+            LOGICAL_OR -> {
+                if (lhs.isBool() && rhs.isBool()) {
+                    lhs.asBool().value || rhs.asBool().value
+                } else {
+                    throw KoyLangRuntimeException("Both $lhs and $rhs should be boolean.")
+                }
+            }
         }
         return Value.of(result)
     }
