@@ -1,6 +1,6 @@
 package io.github.simonnozaki.koy
 
-class ObjectRuntimeEnvironment(
+data class ObjectRuntimeEnvironment(
     val mutableValObjects: MutableMap<String, Map<String, Value>> = mutableMapOf(),
     private val valObjects: MutableMap<String, Map<String, Value>> = mutableMapOf()
 ) {
@@ -18,14 +18,12 @@ class ObjectRuntimeEnvironment(
         valObjects[key] = properties
     }
 
-    fun findBindings(key: String): Map<String, Value>? {
-        val maybeMutableObject = mutableValObjects[key]
-        val maybeObject = valObjects[key]
-        if (maybeMutableObject != null) {
-            return maybeMutableObject
+    fun findBindings(key: String): MutableMap<String, Map<String, Value>>? {
+        if (mutableValObjects[key] != null) {
+            return mutableValObjects
         }
-        if (maybeObject != null) {
-            return maybeObject
+        if (valObjects[key] != null) {
+            return valObjects
         }
         return null
     }

@@ -17,7 +17,16 @@ class Interpreter(
     /**
      * Return the value from interpreter variable environment
      */
-    fun getValue(name: String) = variableEnvironment.findBindings(name)?.get(name)
+    fun getValue(name: String): Value? {
+        if (variableEnvironment.findBindings(name) != null) {
+            return variableEnvironment.findBindings(name)?.get(name)
+        }
+        if (objectRuntimeEnvironment.findBindings(name) != null) {
+            val v = objectRuntimeEnvironment.findBindings(name)?.get(name) ?: throw KoyLangRuntimeException("Not reaching here")
+            return Value.ofObject(v)
+        }
+        return null
+    }
 
     fun getFunction(name: String) = functionEnvironment.findBinding(name)
 
@@ -111,7 +120,7 @@ class Interpreter(
         if (expression is Identifier) {
             // Get variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
-            return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
+            return getValue(expression.name) ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
         }
         if (expression is ValDeclaration) {
             val value = interpret(expression.expression)
@@ -146,15 +155,15 @@ class Interpreter(
             val bindingOptions = variableEnvironment.findBindings(expression.name)
             val maybeObject = objectRuntimeEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
-            if (bindingOptions == null || maybeObject == null) {
+            if (bindingOptions == null && maybeObject == null) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is not defined.")
             }
             if (variableEnvironment.isNotReAssignable(expression.name)) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration.")
             }
             when (value) {
-                is Value.Object -> objectRuntimeEnvironment.mutableValObjects[expression.name] = maybeObject
-                else -> bindingOptions[expression.name] = value
+                is Value.Object -> maybeObject?.set(expression.name, value.value)
+                else -> bindingOptions?.set(expression.name, value)
             }
             return value
         }
