@@ -18,6 +18,8 @@ sealed class Value {
 
     fun isInt(): Boolean = this is Int
 
+    fun isBool(): Boolean = this is Bool
+
     data class Int(
         val value: kotlin.Int
     ) : Value()
