@@ -230,6 +230,11 @@ class InterpreterTests {
     fun `can get and call method related to object`() {
         val interpreter = Interpreter()
         listOf(
+            // val object = {
+            //   print: |msg| {
+            //     "hello, " + msg;
+            //   }
+            // }
             ValDeclaration(
                 "object",
                 Object(
@@ -240,6 +245,7 @@ class InterpreterTests {
                     )
                 )
             ),
+            // val r = object->print("koy");
             ValDeclaration("r", MethodCall("object", "print", listOf(StringLiteral("Koy"))))
         )
             .forEach { interpreter.interpret(it) }

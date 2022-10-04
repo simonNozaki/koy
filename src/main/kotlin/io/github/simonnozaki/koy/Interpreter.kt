@@ -248,10 +248,11 @@ class Interpreter(
         if (expression is MethodCall) {
             val o = objectRuntimeEnvironment.findBindings(expression.objectName)
                 ?: throw KoyLangRuntimeException("Object [ ${expression.objectName} ] is not defined.")
-            val method = o[expression.objectName]?.get(expression.methodName)
             // assert that property is not null and function literal to call with params
-            if (method == null || method !is Value.Function) {
-                throw KoyLangRuntimeException("Object [ ${expression.objectName} ] does not have a method [ ${expression.methodName} ].")
+            val method = o[expression.objectName]?.get(expression.methodName)
+                ?: throw KoyLangRuntimeException("Object [ ${expression.objectName} ] does not have a method or property [ ${expression.methodName} ].")
+            if (method !is Value.Function) {
+                return method
             }
             val body = method.body
             val actualParams = expression.args
@@ -260,6 +261,7 @@ class Interpreter(
 
             val backup = variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)
+            // TODO check parameter number and type before loop
             for ((i, formalParam) in formalParams.withIndex()) {
                 variableEnvironment.bindings[formalParam] = values[i]
             }
