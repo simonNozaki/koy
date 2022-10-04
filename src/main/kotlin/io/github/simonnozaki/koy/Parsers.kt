@@ -291,6 +291,29 @@ object Parsers {
     }
 
     /**
+     * # Method call
+     * ## PEG
+     * ```
+     * methodCall <- identifier '->' identifier '(' (expression(, expression)*)? ')' / identifier
+     * ```
+     */
+    private fun methodCall(): Parser<Char, MethodCall> {
+        val methodCall = IDENT.bind { objectName ->
+            ARROW.then(IDENT).bind { methodName ->
+                expression().sepBy(COMMA).between(LPAREN, RPAREN).map { args ->
+                    MethodCall(objectName, methodName, args.toList())
+                }
+            }
+        }
+        val propertyAccess = IDENT.bind { objectName ->
+            ARROW.then(IDENT).map { propertyName ->
+                MethodCall(objectName, propertyName, listOf())
+            }
+        }
+        return methodCall.or(propertyAccess)
+    }
+
+    /**
      * ```
      * topLevelDefinition <- globalVariableDefinition / functionDefinition
      * ```
@@ -455,6 +478,7 @@ object Parsers {
             .or(arrayLiteral())    // '[' (expression) ']'
             .or(objectLiteral())   // '{' identifier ':' expression '}'
             .or(functionLiteral()) // '|' identifier '|' blockExpression
+            .or(methodCall())      // identifier '->' identifier / identifier '(' expression ')'
     }
 
     /**
