@@ -225,4 +225,24 @@ class InterpreterTests {
         assertTrue(result.isBool())
         assertTrue(result.asBool().value)
     }
+
+    @Test
+    fun `can get and call method related to object`() {
+        val interpreter = Interpreter()
+        listOf(
+            ValDeclaration(
+                "object",
+                Object(
+                    mapOf(
+                        "print" to FunctionLiteral(listOf("msg"), Block(
+                            BinaryExpression(Operator.ADD, StringLiteral("Hello, "), Identifier("msg"))
+                        ))
+                    )
+                )
+            ),
+            ValDeclaration("r", MethodCall("object", "print", listOf(StringLiteral("Koy"))))
+        )
+            .forEach { interpreter.interpret(it) }
+        println(interpreter.getValue("r"))
+    }
 }
