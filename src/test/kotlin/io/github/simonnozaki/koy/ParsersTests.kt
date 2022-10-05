@@ -1,11 +1,8 @@
 package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
@@ -364,6 +361,20 @@ class ParsersTests {
                 is Value.Function -> {
                     kotlin.test.assertTrue(result.args.containsAll(listOf("x")))
                     println(result)
+                }
+                else -> throw RuntimeException()
+            }
+        }
+
+        @Test
+        fun `can define set literal`() {
+            val interpreter = Interpreter()
+            val source = "%(\"kotlin\", \"koy\")"
+            val expression = Parsers.setLiteral().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+            when (result) {
+                is Value.Set -> {
+                    assertTrue(result.value.containsAll(listOf(Value.String("kotlin"), Value.String("koy"))))
                 }
                 else -> throw RuntimeException()
             }

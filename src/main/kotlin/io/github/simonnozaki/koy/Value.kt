@@ -45,6 +45,10 @@ sealed class Value {
         val body: Expression.BlockExpression
     ) : Value()
 
+    data class Set(
+        val value: kotlin.collections.Set<Value>
+    ) : Value()
+
     companion object {
         /**
          * Factory method of sealed class `Value`.
@@ -55,6 +59,7 @@ sealed class Value {
                 is List<*> -> Array(v as List<Value>)
                 is Boolean -> Bool(v)
                 is kotlin.String -> String(v)
+                is kotlin.collections.Set<*> -> Set(v as kotlin.collections.Set<Value>)
                 else -> throw RuntimeException("Type of $v can not convert")
             }
         }

@@ -26,6 +26,10 @@ sealed class Expression {
         val body: BlockExpression
     ) : Expression()
 
+    data class SetLiteral(
+        val value: Set<Expression>
+    ) : Expression()
+
     data class BinaryExpression(
         val operator: Operator,
         val lhs: Expression,

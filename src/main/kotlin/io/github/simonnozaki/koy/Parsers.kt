@@ -63,6 +63,7 @@ object Parsers {
     private val D_QUOTE: Parser<Char, Unit> = string("\"").then(SPACINGS)
     private val PIPE: Parser<Char, Unit> = string("|").then(SPACINGS)
     private val ARROW: Parser<Char, Unit> = string("->").then(SPACINGS)
+    private val PERCENT: Parser<Char, Unit> = string("%").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v -> SPACINGS.map { v } }
@@ -83,6 +84,22 @@ object Parsers {
             expression().sepBy(COMMA).bind { params ->
                 RBRACKET.map { ArrayLiteral(params.toList()) }
             }
+        }
+    }
+
+    /**
+     * # Set Literal
+     * ## PEG
+     * ```
+     * setLiteral <- '%' '(' (expression(, expression)*)? ')'
+     * ```
+     * ## Sample syntax
+     * ```
+     * ```
+     */
+    fun setLiteral(): Parser<Char, SetLiteral> {
+        return PERCENT.bind {
+            expression().sepBy(COMMA).between(LPAREN, RPAREN).map { SetLiteral(it.toSet()) }
         }
     }
 
@@ -452,6 +469,7 @@ object Parsers {
             .or(labeledCall())     // identifier '[' identifier '=' expression ']'
             .or(identifier())      // identifier
             .or(unary())           // ++identifier / --identifier
+            .or(setLiteral())      // '%' '(' (expression(, expression)) ')'
             .or(arrayLiteral())    // '[' (expression) ']'
             .or(objectLiteral())   // '{' identifier ':' expression '}'
             .or(functionLiteral()) // '|' identifier '|' blockExpression

@@ -2,6 +2,7 @@ package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
 
+// TODO command line tool for production build
 fun main() {
     val interpreter = Interpreter()
 

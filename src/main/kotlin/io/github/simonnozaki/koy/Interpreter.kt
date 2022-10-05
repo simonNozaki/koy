@@ -93,6 +93,10 @@ class Interpreter(
             val itemValues = expression.items.map { interpret(it) }
             return Value.of(itemValues)
         }
+        if (expression is SetLiteral) {
+            val elms: Set<Value> = expression.value.map { interpret((it)) }.toSet()
+            return Value.of(elms)
+        }
         if (expression is BoolLiteral) {
             return Value.of(expression.value)
         }
