@@ -14,6 +14,8 @@ sealed class Value {
 
     fun asObject(): Object = this as Object
 
+    fun asSet(): Set = this as Set
+
     fun isString(): Boolean = this is String
 
     fun isInt(): Boolean = this is Int

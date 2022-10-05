@@ -311,6 +311,32 @@ class ParsersTests {
             println(interpreter.getVariables())
             assertEquals(1, interpreter.getValue("n")?.asInt()?.value)
         }
+
+        @Test
+        fun `can assign and evaluate set literal`() {
+            val interpreter = Interpreter()
+            val source = """
+            val domains = %(
+              "ezweb.ne.jp",
+              "gmail.com",
+              "yahoo.jp"
+            );
+            println(domains);
+            """.trimIndent()
+            Parsers.lines()
+                .parse(Input.of(source))
+                .result
+                .forEach { interpreter.interpret(it) }
+
+            println(interpreter.getVariables())
+            val set = interpreter.getValue("domains")?.asSet()?.value
+            assertEquals(3, set?.size)
+            set?.containsAll(listOf(
+                Value.String("ezweb.ne.jp"),
+                Value.String("gmail.com"),
+                Value.String("yahoo.jp")
+            ))?.let { assertTrue(it) }
+        }
     }
 
     @Nested
