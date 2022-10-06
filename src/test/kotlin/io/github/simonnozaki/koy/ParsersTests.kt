@@ -202,6 +202,26 @@ class ParsersTests {
         }
 
         @Test
+        fun `should emit and call function literal from function`() {
+            val interpreter = Interpreter()
+            val source = """
+            val Age = |v| {
+              mutable val _v = v;
+              {
+                value: _v,
+                getOld: |_| {
+                  _v = ++_v;
+                  _v;
+                }
+              };
+            };
+            val now = Age(21);
+            """.trimIndent()
+            Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+            val now = interpreter.getValue("now") ?: throw KoyLangRuntimeException("")
+        }
+
+        @Test
         fun `can assign and call object literal`() {
             val source = """
             val o = {
@@ -288,6 +308,21 @@ class ParsersTests {
                 val source = """
                 mutable val n = 0;
                 mutable val n = 1;
+                """.trimIndent()
+                Parsers.lines()
+                    .parse(Input.of(source))
+                    .result
+                    .forEach { interpreter.interpret(it) }
+            }
+        }
+
+        @Test
+        fun `can not redeclare mutable val and val at once`() {
+            assertThrows<KoyLangRuntimeException>("Declaration [ n ] is already existed, so can not declare again.") {
+                val interpreter = Interpreter()
+                val source = """
+                mutable val n = 0;
+                val n = 1;
                 """.trimIndent()
                 Parsers.lines()
                     .parse(Input.of(source))

@@ -16,11 +16,17 @@ sealed class Value {
 
     fun asSet(): Set = this as Set
 
+    fun asFunction(): Function = this as Function
+
     fun isString(): Boolean = this is String
 
     fun isInt(): Boolean = this is Int
 
     fun isBool(): Boolean = this is Bool
+
+    fun isSet(): Boolean = this is Set
+
+    fun isFunction(): Boolean = this is Function
 
     data class Int(
         val value: kotlin.Int

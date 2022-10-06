@@ -106,7 +106,6 @@ class InterpreterTests {
     fun can_increment_in_while() {
         val statements = listOf(
             // mutable val i = 0;
-//            assign("i", IntegerLiteral(0)),
             MutableValDeclaration("i", IntegerLiteral(0)),
             // while(x < 10) {
             //   i = i + 1;
@@ -224,5 +223,15 @@ class InterpreterTests {
 
         assertTrue(result.isBool())
         assertTrue(result.asBool().value)
+    }
+
+    @Test
+    fun `can initialize set literal`() {
+        val interpreter = Interpreter()
+        val statement = SetLiteral(setOf(StringLiteral("Java"), StringLiteral("Kotlin"), StringLiteral("Koy")))
+        val result = interpreter.interpret(statement)
+
+        assertTrue(result.isSet())
+        assertTrue(result.asSet().value.containsAll(listOf(Value.String("Java"), Value.String("Kotlin"), Value.String("Koy"))))
     }
 }
