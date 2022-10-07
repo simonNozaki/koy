@@ -12,9 +12,7 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
-// TODO and/or operation for boolean expression
-// TODO Tuple Literal, set literal
-// TODO property call by dot operator as method call
+// TODO Tuple Literal
 // TODO comment out
 object Parsers {
     /**
@@ -93,7 +91,7 @@ object Parsers {
      * # Set Literal
      * ## PEG
      * ```
-     * setLiteral <- '%' '(' (expression(, expression)*)? ')'
+     * setLiteral <- '%' '{' (expression(, expression)*)? '}'
      * ```
      * ## Sample syntax
      * ```
@@ -101,7 +99,7 @@ object Parsers {
      */
     fun setLiteral(): Parser<Char, SetLiteral> {
         return PERCENT.bind {
-            expression().sepBy(COMMA).between(LPAREN, RPAREN).map { SetLiteral(it.toSet()) }
+            expression().sepBy(COMMA).between(LBRACE, RBRACE).map { SetLiteral(it.toSet()) }
         }
     }
 

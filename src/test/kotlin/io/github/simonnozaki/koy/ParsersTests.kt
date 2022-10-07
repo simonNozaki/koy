@@ -351,11 +351,11 @@ class ParsersTests {
         fun `can assign and evaluate set literal`() {
             val interpreter = Interpreter()
             val source = """
-            val domains = %(
+            val domains = %{
               "ezweb.ne.jp",
               "gmail.com",
               "yahoo.jp"
-            );
+            };
             println(domains);
             """.trimIndent()
             Parsers.lines()
@@ -430,7 +430,7 @@ class ParsersTests {
         @Test
         fun `can define set literal`() {
             val interpreter = Interpreter()
-            val source = "%(\"kotlin\", \"koy\")"
+            val source = "%{\"kotlin\", \"koy\"}"
             val expression = Parsers.setLiteral().parse(Input.of(source)).result
             val result = interpreter.interpret(expression)
             when (result) {
