@@ -440,5 +440,25 @@ class ParsersTests {
                 else -> throw RuntimeException()
             }
         }
+
+        @Test
+        fun `should be false with "true" and "false"`() {
+            val interpreter = Interpreter()
+            val source = "true and false"
+            val expression = Parsers.expression().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+
+            assertFalse(result.asBool().value)
+        }
+
+        @Test
+        fun `should be true with "true" or "false"`() {
+            val interpreter = Interpreter()
+            val source = "true or false"
+            val expression = Parsers.expression().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+
+            assertTrue(result.asBool().value)
+        }
     }
 }

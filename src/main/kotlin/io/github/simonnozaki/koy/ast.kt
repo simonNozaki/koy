@@ -31,6 +31,10 @@ fun equal(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.EQUAL, l
 
 fun notEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.NOT_EQUAL, lhs, rhs)
 
+fun logicalAnd(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LOGICAL_AND, lhs, rhs)
+
+fun logicalOr(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LOGICAL_OR, lhs, rhs)
+
 fun integer(value: Int): IntegerLiteral = IntegerLiteral(value)
 
 fun bool(value: Boolean) = BoolLiteral(value)
