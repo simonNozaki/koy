@@ -19,6 +19,8 @@ fun divide(lhs: Expression, rhs: Expression): BinaryExpression {
     return BinaryExpression(Operator.DIVIDE, lhs, rhs)
 }
 
+fun remain(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.REMAINDER, lhs, rhs)
+
 fun lessThan(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LESS_THAN, lhs, rhs)
 
 fun lessThanEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LESS_OR_EQUAL, lhs, rhs)

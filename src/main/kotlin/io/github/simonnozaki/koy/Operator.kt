@@ -5,6 +5,7 @@ enum class Operator{
     SUBTRACT,
     MULTIPLY,
     DIVIDE,
+    REMAINDER,
     LESS_THAN,
     LESS_OR_EQUAL,
     GREATER_THAN,

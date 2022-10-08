@@ -44,6 +44,7 @@ class Interpreter(
             SUBTRACT -> lhs.asInt().value - rhs.asInt().value
             MULTIPLY -> lhs.asInt().value * rhs.asInt().value
             DIVIDE -> lhs.asInt().value / rhs.asInt().value
+            REMAINDER -> lhs.asInt().value % rhs.asInt().value
             LESS_THAN -> lhs.asInt().value < rhs.asInt().value
             LESS_OR_EQUAL -> lhs.asInt().value <= rhs.asInt().value
             GREATER_THAN -> lhs.asInt().value > rhs.asInt().value

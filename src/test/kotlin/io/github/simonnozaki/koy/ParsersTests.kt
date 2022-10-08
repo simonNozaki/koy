@@ -219,6 +219,9 @@ class ParsersTests {
             """.trimIndent()
             Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
             val now = interpreter.getValue("now") ?: throw KoyLangRuntimeException("")
+
+            assertTrue(now.isObject())
+            assertEquals(21, now.asObject().value["value"]?.asInt()?.value)
         }
 
         @Test
@@ -366,17 +369,26 @@ class ParsersTests {
             println(interpreter.getVariables())
             val set = interpreter.getValue("domains")?.asSet()?.value
             assertEquals(3, set?.size)
-            set?.containsAll(listOf(
-                Value.String("ezweb.ne.jp"),
-                Value.String("gmail.com"),
-                Value.String("yahoo.jp")
-            ))?.let { assertTrue(it) }
+            set?.containsAll(
+                listOf(
+                    Value.String("ezweb.ne.jp"),
+                    Value.String("gmail.com"),
+                    Value.String("yahoo.jp")
+                )
+            )?.let { assertTrue(it) }
         }
     }
 
     @Nested
     @DisplayName("Literal types parsers tests")
     class LiteralParsersTests {
+        @Test
+        fun `should remain 0`() {
+            val expression = Parsers.expression().parse(Input.of("10 % 5")).result
+            val result = Interpreter().interpret(expression)
+            assertEquals(0, result.asInt().value)
+        }
+
         @Test
         fun is_true_literal() {
             val expression = Parsers.expression().parse(Input.of("true")).result

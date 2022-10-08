@@ -441,7 +441,10 @@ object Parsers {
         val divide: Parser<Char, BinaryOperator<Expression>> = SLUSH.map {
             BinaryOperator { l, r -> divide(l, r) }
         }
-        return primary().chainl1(multiply.or(divide))
+        val remain: Parser<Char, BinaryOperator<Expression>> = PERCENT.map {
+            BinaryOperator { l, r -> remain(l, r) }
+        }
+        return primary().chainl1(multiply.or(divide).or(remain))
     }
 
     /**
