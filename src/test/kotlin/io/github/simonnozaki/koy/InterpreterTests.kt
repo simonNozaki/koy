@@ -227,6 +227,16 @@ class InterpreterTests {
     }
 
     @Test
+    fun `can initialize set literal`() {
+        val interpreter = Interpreter()
+        val statement = SetLiteral(setOf(StringLiteral("Java"), StringLiteral("Kotlin"), StringLiteral("Koy")))
+        val result = interpreter.interpret(statement)
+
+        assertTrue(result.isSet())
+        assertTrue(result.asSet().value.containsAll(listOf(Value.String("Java"), Value.String("Kotlin"), Value.String("Koy"))))
+    }
+
+    @Test
     fun `can get and call method related to object`() {
         val interpreter = Interpreter()
         listOf(
@@ -239,9 +249,12 @@ class InterpreterTests {
                 "object",
                 Object(
                     mapOf(
-                        "print" to FunctionLiteral(listOf("msg"), Block(
-                            BinaryExpression(Operator.ADD, StringLiteral("Hello, "), Identifier("msg"))
-                        ))
+                        "print" to FunctionLiteral(
+                            listOf("msg"),
+                            Block(
+                                BinaryExpression(Operator.ADD, StringLiteral("Hello, "), Identifier("msg"))
+                            )
+                        )
                     )
                 )
             ),

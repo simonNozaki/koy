@@ -12,9 +12,7 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
-// TODO and/or operation for boolean expression
-// TODO Tuple Literal, set literal
-// TODO property call by dot operator as method call
+// TODO Tuple Literal
 // TODO comment out
 object Parsers {
     /**
@@ -63,6 +61,9 @@ object Parsers {
     private val D_QUOTE: Parser<Char, Unit> = string("\"").then(SPACINGS)
     private val PIPE: Parser<Char, Unit> = string("|").then(SPACINGS)
     private val ARROW: Parser<Char, Unit> = string("->").then(SPACINGS)
+    private val LOGICAL_AND: Parser<Char, Unit> = string("and").then(SPACINGS)
+    private val LOGICAL_OR: Parser<Char, Unit> = string("or").then(SPACINGS)
+    private val PERCENT: Parser<Char, Unit> = string("%").then(SPACINGS)
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v -> SPACINGS.map { v } }
@@ -83,6 +84,22 @@ object Parsers {
             expression().sepBy(COMMA).bind { params ->
                 RBRACKET.map { ArrayLiteral(params.toList()) }
             }
+        }
+    }
+
+    /**
+     * # Set Literal
+     * ## PEG
+     * ```
+     * setLiteral <- '%' '{' (expression(, expression)*)? '}'
+     * ```
+     * ## Sample syntax
+     * ```
+     * ```
+     */
+    fun setLiteral(): Parser<Char, SetLiteral> {
+        return PERCENT.bind {
+            expression().sepBy(COMMA).between(LBRACE, RBRACE).map { SetLiteral(it.toSet()) }
         }
     }
 
@@ -410,9 +427,11 @@ object Parsers {
         val gtEq: Parser<Char, BinaryOperator<Expression>> = GT_EQ.attempt().map { BinaryOperator { l, r -> greaterThanEqual(l, r) } }
         val lt: Parser<Char, BinaryOperator<Expression>> = LT.attempt().map { BinaryOperator { l, r -> lessThan(l, r) } }
         val ltEq: Parser<Char, BinaryOperator<Expression>> = LT_EQ.attempt().map { BinaryOperator { l, r -> lessThanEqual(l, r) } }
+        val and: Parser<Char, BinaryOperator<Expression>> = LOGICAL_AND.attempt().map { BinaryOperator { l, r -> logicalAnd(l, r) } }
+        val or: Parser<Char, BinaryOperator<Expression>> = LOGICAL_OR.attempt().map { BinaryOperator { l, r -> logicalOr(l, r) } }
 
         return addictive().chainl1(
-            lt.or(ltEq).or(gt).or(gtEq).or(eqeq).or(ne)
+            lt.or(ltEq).or(gt).or(gtEq).or(eqeq).or(ne).or(and).or(or)
         )
     }
 
@@ -445,7 +464,10 @@ object Parsers {
         val divide: Parser<Char, BinaryOperator<Expression>> = SLUSH.map {
             BinaryOperator { l, r -> divide(l, r) }
         }
-        return primary().chainl1(multiply.or(divide))
+        val remain: Parser<Char, BinaryOperator<Expression>> = PERCENT.map {
+            BinaryOperator { l, r -> remain(l, r) }
+        }
+        return primary().chainl1(multiply.or(divide).or(remain))
     }
 
     /**
@@ -475,6 +497,7 @@ object Parsers {
             .or(labeledCall())     // identifier '[' identifier '=' expression ']'
             .or(identifier())      // identifier
             .or(unary())           // ++identifier / --identifier
+            .or(setLiteral())      // '%' '(' (expression(, expression)) ')'
             .or(arrayLiteral())    // '[' (expression) ']'
             .or(objectLiteral())   // '{' identifier ':' expression '}'
             .or(functionLiteral()) // '|' identifier '|' blockExpression

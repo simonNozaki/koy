@@ -54,6 +54,7 @@ class Interpreter(
             SUBTRACT -> lhs.asInt().value - rhs.asInt().value
             MULTIPLY -> lhs.asInt().value * rhs.asInt().value
             DIVIDE -> lhs.asInt().value / rhs.asInt().value
+            REMAINDER -> lhs.asInt().value % rhs.asInt().value
             LESS_THAN -> lhs.asInt().value < rhs.asInt().value
             LESS_OR_EQUAL -> lhs.asInt().value <= rhs.asInt().value
             GREATER_THAN -> lhs.asInt().value > rhs.asInt().value
@@ -102,6 +103,10 @@ class Interpreter(
         if (expression is ArrayLiteral) {
             val itemValues = expression.items.map { interpret(it) }
             return Value.of(itemValues)
+        }
+        if (expression is SetLiteral) {
+            val elms: Set<Value> = expression.value.map { interpret((it)) }.toSet()
+            return Value.of(elms)
         }
         if (expression is BoolLiteral) {
             return Value.of(expression.value)

@@ -19,6 +19,8 @@ fun divide(lhs: Expression, rhs: Expression): BinaryExpression {
     return BinaryExpression(Operator.DIVIDE, lhs, rhs)
 }
 
+fun remain(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.REMAINDER, lhs, rhs)
+
 fun lessThan(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LESS_THAN, lhs, rhs)
 
 fun lessThanEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LESS_OR_EQUAL, lhs, rhs)
@@ -30,6 +32,10 @@ fun greaterThanEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operat
 fun equal(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.EQUAL, lhs, rhs)
 
 fun notEqual(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.NOT_EQUAL, lhs, rhs)
+
+fun logicalAnd(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LOGICAL_AND, lhs, rhs)
+
+fun logicalOr(lhs: Expression, rhs: Expression) = BinaryExpression(Operator.LOGICAL_OR, lhs, rhs)
 
 fun integer(value: Int): IntegerLiteral = IntegerLiteral(value)
 

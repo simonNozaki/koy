@@ -1,11 +1,8 @@
 package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
@@ -205,6 +202,29 @@ class ParsersTests {
         }
 
         @Test
+        fun `should emit and call function literal from function`() {
+            val interpreter = Interpreter()
+            val source = """
+            val Age = |v| {
+              mutable val _v = v;
+              {
+                value: _v,
+                getOld: |_| {
+                  _v = ++_v;
+                  _v;
+                }
+              };
+            };
+            val now = Age(21);
+            """.trimIndent()
+            Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+            val now = interpreter.getValue("now") ?: throw KoyLangRuntimeException("")
+
+            assertTrue(now.isObject())
+            assertEquals(21, now.asObject().value["value"]?.asInt()?.value)
+        }
+
+        @Test
         fun `can assign and call object literal`() {
             val source = """
             val o = {
@@ -301,6 +321,21 @@ class ParsersTests {
         }
 
         @Test
+        fun `can not redeclare mutable val and val at once`() {
+            assertThrows<KoyLangRuntimeException>("Declaration [ n ] is already existed, so can not declare again.") {
+                val interpreter = Interpreter()
+                val source = """
+                mutable val n = 0;
+                val n = 1;
+                """.trimIndent()
+                Parsers.lines()
+                    .parse(Input.of(source))
+                    .result
+                    .forEach { interpreter.interpret(it) }
+            }
+        }
+
+        @Test
         fun `can assign mutable variable`() {
             val interpreter = Interpreter()
             val source = """
@@ -315,11 +350,46 @@ class ParsersTests {
             println(interpreter.getVariables())
             assertEquals(1, interpreter.getValue("n")?.asInt()?.value)
         }
+
+        @Test
+        fun `can assign and evaluate set literal`() {
+            val interpreter = Interpreter()
+            val source = """
+            val domains = %{
+              "ezweb.ne.jp",
+              "gmail.com",
+              "yahoo.jp"
+            };
+            println(domains);
+            """.trimIndent()
+            Parsers.lines()
+                .parse(Input.of(source))
+                .result
+                .forEach { interpreter.interpret(it) }
+
+            println(interpreter.getVariables())
+            val set = interpreter.getValue("domains")?.asSet()?.value
+            assertEquals(3, set?.size)
+            set?.containsAll(
+                listOf(
+                    Value.String("ezweb.ne.jp"),
+                    Value.String("gmail.com"),
+                    Value.String("yahoo.jp")
+                )
+            )?.let { assertTrue(it) }
+        }
     }
 
     @Nested
     @DisplayName("Literal types parsers tests")
     class LiteralParsersTests {
+        @Test
+        fun `should remain 0`() {
+            val expression = Parsers.expression().parse(Input.of("10 % 5")).result
+            val result = Interpreter().interpret(expression)
+            assertEquals(0, result.asInt().value)
+        }
+
         @Test
         fun is_true_literal() {
             val expression = Parsers.expression().parse(Input.of("true")).result
@@ -368,6 +438,40 @@ class ParsersTests {
                 }
                 else -> throw RuntimeException()
             }
+        }
+
+        @Test
+        fun `can define set literal`() {
+            val interpreter = Interpreter()
+            val source = "%{\"kotlin\", \"koy\"}"
+            val expression = Parsers.setLiteral().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+            when (result) {
+                is Value.Set -> {
+                    assertTrue(result.value.containsAll(listOf(Value.String("kotlin"), Value.String("koy"))))
+                }
+                else -> throw RuntimeException()
+            }
+        }
+
+        @Test
+        fun `should be false with "true" and "false"`() {
+            val interpreter = Interpreter()
+            val source = "true and false"
+            val expression = Parsers.expression().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+
+            assertFalse(result.asBool().value)
+        }
+
+        @Test
+        fun `should be true with "true" or "false"`() {
+            val interpreter = Interpreter()
+            val source = "true or false"
+            val expression = Parsers.expression().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+
+            assertTrue(result.asBool().value)
         }
     }
 }

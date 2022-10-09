@@ -14,11 +14,21 @@ sealed class Value {
 
     fun asObject(): Object = this as Object
 
+    fun asSet(): Set = this as Set
+
+    fun asFunction(): Function = this as Function
+
     fun isString(): Boolean = this is String
 
     fun isInt(): Boolean = this is Int
 
     fun isBool(): Boolean = this is Bool
+
+    fun isSet(): Boolean = this is Set
+
+    fun isFunction(): Boolean = this is Function
+
+    fun isObject(): Boolean = this is Object
 
     data class Int(
         val value: kotlin.Int
@@ -45,6 +55,10 @@ sealed class Value {
         val body: Expression.BlockExpression
     ) : Value()
 
+    data class Set(
+        val value: kotlin.collections.Set<Value>
+    ) : Value()
+
     companion object {
         /**
          * Factory method of sealed class `Value`.
@@ -55,6 +69,7 @@ sealed class Value {
                 is List<*> -> Array(v as List<Value>)
                 is Boolean -> Bool(v)
                 is kotlin.String -> String(v)
+                is kotlin.collections.Set<*> -> Set(v as kotlin.collections.Set<Value>)
                 else -> throw RuntimeException("Type of $v can not convert")
             }
         }
