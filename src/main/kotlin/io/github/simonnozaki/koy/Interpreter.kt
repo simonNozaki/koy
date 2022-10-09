@@ -49,8 +49,36 @@ class Interpreter(
             LESS_OR_EQUAL -> lhs.asInt().value <= rhs.asInt().value
             GREATER_THAN -> lhs.asInt().value > rhs.asInt().value
             GREATER_OR_EQUAL -> lhs.asInt().value >= rhs.asInt().value
-            EQUAL -> lhs.asInt().value == rhs.asInt().value
-            NOT_EQUAL -> lhs.asInt().value != rhs.asInt().value
+            EQUAL -> {
+                if (lhs.isInt() && rhs.isInt()) {
+                    lhs.asInt().value == rhs.asInt().value
+                } else if (lhs.isBool() && rhs.isBool()) {
+                    lhs.asBool().value == rhs.asBool().value
+                } else if (lhs.isString() && rhs.isString()) {
+                    lhs.asString().value == rhs.asString().value
+                } else if (lhs.isSet() && rhs.isSet()) {
+                    lhs.asSet().value == rhs.asSet().value
+                } else if (lhs.isArray() && rhs.isArray()) {
+                    lhs.asArray().items == rhs.asArray().items
+                } else {
+                    throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
+                }
+            }
+            NOT_EQUAL -> {
+                if (lhs.isInt() && rhs.isInt()) {
+                    lhs.asInt().value != rhs.asInt().value
+                } else if (lhs.isBool() && rhs.isBool()) {
+                    lhs.asBool().value != rhs.asBool().value
+                } else if (lhs.isString() && rhs.isString()) {
+                    lhs.asString().value != rhs.asString().value
+                } else if (lhs.isSet() && rhs.isSet()) {
+                    lhs.asSet().value != rhs.asSet().value
+                } else if (lhs.isArray() && rhs.isArray()) {
+                    lhs.asArray().items != rhs.asArray().items
+                } else {
+                    throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
+                }
+            }
             LOGICAL_AND -> {
                 if (lhs.isBool() && rhs.isBool()) {
                     lhs.asBool().value && rhs.asBool().value

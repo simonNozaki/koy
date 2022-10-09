@@ -16,8 +16,6 @@ sealed class Value {
 
     fun asSet(): Set = this as Set
 
-    fun asFunction(): Function = this as Function
-
     fun isString(): Boolean = this is String
 
     fun isInt(): Boolean = this is Int
@@ -26,7 +24,7 @@ sealed class Value {
 
     fun isSet(): Boolean = this is Set
 
-    fun isFunction(): Boolean = this is Function
+    fun isArray() = this is Array
 
     fun isObject(): Boolean = this is Object
 
