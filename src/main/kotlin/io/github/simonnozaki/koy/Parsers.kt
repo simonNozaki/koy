@@ -12,6 +12,9 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
+// TODO property accessor for array and object
+// TODO regex
+// TODO `return` for block expression
 // TODO Tuple Literal
 // TODO comment out
 object Parsers {
@@ -228,7 +231,7 @@ object Parsers {
      * val assignment can assign variable only at once.
      * ## PEG
      * ```
-     * valAssignment <- 'val' identifier '=' expression ';'
+     * valDeclaration <- 'val' identifier '=' expression ';'
      * ```
      * ## Sample syntax
      * ```
@@ -248,11 +251,11 @@ object Parsers {
      * mutable val assignment can assign variable as re-assignable value.
      * ## PEG
      * ```
-     * valAssignment <- 'mutable' 'val' identifier '=' expression ';'
+     * mutableValDeclaration <- 'mutable' 'val' identifier '=' expression ';'
      * ```
      * ## Sample syntax
      * ```
-     * val f = |x, y| { x + y; };
+     * mutable val f = |x, y| { x + y; };
      * ```
      */
     private fun mutableValDeclaration(): Parser<Char, MutableValDeclaration> {
