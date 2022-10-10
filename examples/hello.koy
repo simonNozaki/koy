@@ -1,0 +1,7 @@
+fn greet() {
+  "Hej, Koy!";
+}
+
+fn main () {
+  greet();
+}
