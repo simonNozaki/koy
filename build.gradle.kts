@@ -8,11 +8,6 @@ plugins {
 group = "io.github.simonnozaki"
 version = "0.0.1"
 
-tasks.withType(Jar::class.java) {
-    manifest {
-        attributes["Main-Class"] = "io.github.simonnozaki.koy.KoyLang"
-    }
-}
 
 repositories {
     mavenCentral()
@@ -21,6 +16,23 @@ repositories {
 dependencies {
     implementation("org.javafp:parsecj:0.6")
     testImplementation(kotlin("test"))
+}
+
+tasks.withType(Jar::class.java) {
+    // https://docs.gradle.org/7.3.3/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes["Main-Class"] = "io.github.simonnozaki.koy.KoyLangKt"
+    }
+    val archives = configurations.compileClasspath.get().map {
+        if (it.isDirectory) {
+            it
+        } else {
+            zipTree(it)
+        }
+    }
+    from(archives)
+    archiveFileName.set("koy.jar")
 }
 
 tasks.test {
