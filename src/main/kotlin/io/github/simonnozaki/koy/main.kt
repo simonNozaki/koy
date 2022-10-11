@@ -2,7 +2,6 @@ package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
 
-// TODO command line tool for production build
 fun main() {
     val interpreter = Interpreter()
 
@@ -58,6 +57,7 @@ fun main() {
     
     fn main() {
       val r = greet("Koy");
+      println(r);
     }
     """.trimIndent()
     val program = Parsers.program().parse(Input.of(programSource))
