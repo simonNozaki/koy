@@ -10,7 +10,6 @@ fun main(args: Array<String>) {
     for ((i) in args.withIndex()) {
         if (args[i] == "-f" && args[i+1].matches(Regex(".+\\.koy"))) {
             val fileName = args[i+1]
-            println(fileName)
             val content = getFileContent(fileName)
 
             val program = Parsers.program().parse(Input.of(content)).result
@@ -20,7 +19,7 @@ fun main(args: Array<String>) {
             interpreter.withDebug()
         } else {
             System.err.println("""
-            |Usage: java -jar koy.jar -f <fileName> (-d)*
+            |Usage: java -jar koy.jar -f <fileName>.koy (-d)*
             | -d             : enable debug logg printing ast
             |-f <fileName>   : read a program from <fileName> and execute it
             """.trimIndent())
@@ -43,8 +42,8 @@ internal fun getFileContent(fileName: String): String {
         stringBuilder.append(it.readLine())
         var line = it.readLine()
         while (line != null) {
-            line = it.readLine()
             stringBuilder.append(line)
+            line = it.readLine()
         }
         return stringBuilder.toString()
     }
