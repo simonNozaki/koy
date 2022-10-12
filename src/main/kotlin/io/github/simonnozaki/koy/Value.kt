@@ -4,6 +4,8 @@ package io.github.simonnozaki.koy
  * Domain object that represents type of values.
  */
 sealed class Value {
+    abstract override fun toString(): kotlin.String
+
     fun asInt(): Int = this as Int
 
     fun asArray(): Array = this as Array
@@ -30,32 +32,46 @@ sealed class Value {
 
     data class Int(
         val value: kotlin.Int
-    ) : Value()
+    ) : Value() {
+        override fun toString(): kotlin.String = value.toString()
+    }
 
     data class Array(
         val items: List<Value>
-    ) : Value()
+    ) : Value() {
+        override fun toString(): kotlin.String = items.map { it.toString() }.toString()
+    }
 
     data class Bool(
         val value: Boolean
-    ) : Value()
+    ) : Value() {
+        override fun toString(): kotlin.String = value.toString()
+    }
 
     data class String(
         val value: kotlin.String
-    ) : Value()
+    ) : Value() {
+        override fun toString(): kotlin.String = value
+    }
 
     data class Object(
         val value: Map<kotlin.String, Value>
-    ) : Value()
+    ) : Value() {
+        override fun toString(): kotlin.String = value.toString()
+    }
 
     data class Function(
         val args: List<kotlin.String>,
         val body: Expression.BlockExpression
-    ) : Value()
+    ) : Value() {
+        override fun toString(): kotlin.String = "Function[params=$args]"
+    }
 
     data class Set(
         val value: kotlin.collections.Set<Value>
-    ) : Value()
+    ) : Value() {
+        override fun toString(): kotlin.String = value.toString()
+    }
 
     companion object {
         /**

@@ -196,7 +196,7 @@ class Interpreter(
         }
         if (expression is PrintLn) {
             val v = interpret(expression.arg)
-            println(v)
+            println(v.toString())
             return v
         }
         if (expression is IfExpression) {
