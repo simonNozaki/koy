@@ -114,6 +114,10 @@ class Interpreter(
 
     private fun execute(expression: Expression): Value {
         if (expression is UnaryExpression) {
+            if (expression.value !is Identifier) {
+                throw KoyLangRuntimeException("Unary operation needs variable.")
+            }
+
             val identifier = try {
                 interpret(expression.value).asInt().value
             } catch (e: Exception) {
@@ -124,6 +128,7 @@ class Interpreter(
                 INCREMENT -> identifier + 1
                 DECREMENT -> identifier - 1
             }
+            interpret(assign(expression.value.name, IntegerLiteral(v)))
             return Value.of(v)
         }
         if (expression is BinaryExpression) {

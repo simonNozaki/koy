@@ -287,9 +287,9 @@ class ParsersTests {
         fun `can increment and decrement`() {
             val interpreter = Interpreter()
             val source = """
-            val n = 1;
+            mutable val n = 1;
             val n2 = ++n;
-            val m = 1;
+            mutable val m = 1;
             val m2 = --m;
             """.trimIndent()
             Parsers.lines()
@@ -403,6 +403,19 @@ class ParsersTests {
                     Value.String("yahoo.jp")
                 )
             )?.let { assertTrue(it) }
+        }
+
+        @Test
+        fun `can increment in while`() {
+            val interpreter = Interpreter()
+            val source = """
+            mutable val i = 0;
+            {
+              ++i;
+            }
+            println(i);
+            """.trimIndent()
+            Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
         }
     }
 

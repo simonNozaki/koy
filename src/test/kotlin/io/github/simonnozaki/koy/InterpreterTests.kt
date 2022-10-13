@@ -192,9 +192,9 @@ class InterpreterTests {
             // val n2 = n++;
             // val m = 1;
             // val m2 = m--;
-            ValDeclaration("n", integer(1)),
+            MutableValDeclaration("n", integer(1)),
             ValDeclaration("n2", increment("n")),
-            ValDeclaration("m", integer(1)),
+            MutableValDeclaration("m", integer(1)),
             ValDeclaration("m2", decrement("m"),)
         ).forEach { interpreter.interpret(it) }
         println(interpreter.getVariables())
