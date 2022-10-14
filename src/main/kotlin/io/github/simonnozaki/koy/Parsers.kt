@@ -498,7 +498,7 @@ object Parsers {
         val condition = IF.then(expression().between(LPAREN, RPAREN))
         return condition.bind { c ->
             line().bind { thenClause ->
-                ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause.get()) }
+                ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause) }
             }
         }.attempt()
     }

@@ -209,7 +209,7 @@ class Interpreter(
             return if (condition) {
                 interpret(expression.thenClause)
             } else {
-                expression.elseClause?.let { interpret(it) } ?: Value.of(true)
+                expression.elseClause.map { interpret(it) }.orElse(Value.of(true))
             }
         }
         if (expression is WhileExpression) {
