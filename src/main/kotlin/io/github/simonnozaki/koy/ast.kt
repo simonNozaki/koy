@@ -2,6 +2,7 @@ package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.Expression.*
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
+import java.util.Optional
 
 fun add(lhs: Expression, rhs: Expression): BinaryExpression {
     return BinaryExpression(Operator.ADD, lhs, rhs)
@@ -66,7 +67,7 @@ fun decrement(name: String) = UnaryExpression(UnaryOperator.DECREMENT, identifie
 fun If(
     condition: Expression,
     thenClause: Expression,
-    elseClause: Expression?
+    elseClause: Optional<Expression>
 ): IfExpression = IfExpression(condition, thenClause, elseClause)
 
 fun While(condition: Expression, body: Expression) = WhileExpression(condition, body)
