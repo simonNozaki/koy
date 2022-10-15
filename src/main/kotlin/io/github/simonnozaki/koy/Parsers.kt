@@ -12,6 +12,9 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
+// TODO property accessor for array and object
+// TODO regex
+// TODO `return` for block expression
 // TODO Tuple Literal
 // TODO comment out
 object Parsers {
@@ -20,7 +23,7 @@ object Parsers {
      * after 2nd: alphabet + number + _
      */
     private const val PATTERN_IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*"
-    private const val PATTERN_STRING_LITERAL = "((?!(\"|#\\{))(\\\\[rntfb\"'\\\\]|[^\\\\]))+"
+    private const val PATTERN_STRING_LITERAL = "((?!(\"|#\\{))(\\\\[rntfb\"'\\\\]|[^\\\\]))*"
 
     private val SPACING: Parser<Char, Unit> = wspace.map { Unit.unit }.or(regex("(?m)//.*$").map { Unit.unit })
     private val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
@@ -228,7 +231,7 @@ object Parsers {
      * val assignment can assign variable only at once.
      * ## PEG
      * ```
-     * valAssignment <- 'val' identifier '=' expression ';'
+     * valDeclaration <- 'val' identifier '=' expression ';'
      * ```
      * ## Sample syntax
      * ```
@@ -248,11 +251,11 @@ object Parsers {
      * mutable val assignment can assign variable as re-assignable value.
      * ## PEG
      * ```
-     * valAssignment <- 'mutable' 'val' identifier '=' expression ';'
+     * mutableValDeclaration <- 'mutable' 'val' identifier '=' expression ';'
      * ```
      * ## Sample syntax
      * ```
-     * val f = |x, y| { x + y; };
+     * mutable val f = |x, y| { x + y; };
      * ```
      */
     private fun mutableValDeclaration(): Parser<Char, MutableValDeclaration> {
@@ -522,7 +525,7 @@ object Parsers {
         val condition = IF.then(expression().between(LPAREN, RPAREN))
         return condition.bind { c ->
             line().bind { thenClause ->
-                ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause.get()) }
+                ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause) }
             }
         }.attempt()
     }

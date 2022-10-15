@@ -3,6 +3,7 @@ package io.github.simonnozaki.koy
 import io.github.simonnozaki.koy.Expression.*
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import java.util.Optional
 import kotlin.test.assertEquals
 
 /**
@@ -79,9 +80,11 @@ class InterpreterTests {
                     If(
                         lessThan(identifier("v"), integer(2)),
                         integer(1),
-                        multiply(
-                            call("factorial", subtract(identifier("v"), integer(1))),
-                            identifier("v")
+                        Optional.of(
+                            multiply(
+                                call("factorial", subtract(identifier("v"), integer(1))),
+                                identifier("v")
+                            )
                         )
                     )
                 )
@@ -193,9 +196,9 @@ class InterpreterTests {
             // val n2 = n++;
             // val m = 1;
             // val m2 = m--;
-            ValDeclaration("n", integer(1)),
+            MutableValDeclaration("n", integer(1)),
             ValDeclaration("n2", increment("n")),
-            ValDeclaration("m", integer(1)),
+            MutableValDeclaration("m", integer(1)),
             ValDeclaration("m2", decrement("m"),)
         ).forEach { interpreter.interpret(it) }
         println(interpreter.getVariables())

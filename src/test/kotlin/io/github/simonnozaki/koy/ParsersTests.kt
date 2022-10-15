@@ -225,6 +225,33 @@ class ParsersTests {
         }
 
         @Test
+        fun `should be equal arrays`() {
+            val interpreter = Interpreter()
+            val source = """
+            val l = [0, 1, 2];
+            val m = [0, 1, 2];
+            val r = l == m;
+            """.trimIndent()
+            Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+            val r = interpreter.getValue("r")?.asBool()?.value ?: throw KoyLangRuntimeException("")
+
+            assertTrue(r)
+        }
+
+        @Test
+        fun `should throw Exception with not compatible types`() {
+            assertThrows<KoyLangRuntimeException> {
+                val interpreter = Interpreter()
+                val source = """
+                val l = [0, 1, 2];
+                val m = %{0, 1, 2};
+                val r = l == m;
+                """.trimIndent()
+                Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+            }
+        }
+
+        @Test
         fun `can assign and call object literal`() {
             val source = """
             val o = {
@@ -261,9 +288,9 @@ class ParsersTests {
         fun `can increment and decrement`() {
             val interpreter = Interpreter()
             val source = """
-            val n = 1;
+            mutable val n = 1;
             val n2 = ++n;
-            val m = 1;
+            mutable val m = 1;
             val m2 = --m;
             """.trimIndent()
             Parsers.lines()
@@ -377,6 +404,19 @@ class ParsersTests {
                     Value.String("yahoo.jp")
                 )
             )?.let { assertTrue(it) }
+        }
+
+        @Test
+        fun `can increment in while`() {
+            val interpreter = Interpreter()
+            val source = """
+            mutable val i = 0;
+            {
+              ++i;
+            }
+            println(i);
+            """.trimIndent()
+            Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
         }
     }
 

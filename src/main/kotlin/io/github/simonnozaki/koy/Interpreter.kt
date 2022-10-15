@@ -37,6 +37,12 @@ class Interpreter(
      */
     fun getVariables() = variableEnvironment.bindings.toMap()
 
+    fun withDebug() = apply {
+        this.requireDebugLog = true
+    }
+
+    private var requireDebugLog = false
+
     private fun getBinaryOpsResult(binaryExpression: BinaryExpression): Value {
         val lhs = interpret(binaryExpression.lhs)
         val rhs = interpret(binaryExpression.rhs)
@@ -59,8 +65,36 @@ class Interpreter(
             LESS_OR_EQUAL -> lhs.asInt().value <= rhs.asInt().value
             GREATER_THAN -> lhs.asInt().value > rhs.asInt().value
             GREATER_OR_EQUAL -> lhs.asInt().value >= rhs.asInt().value
-            EQUAL -> lhs.asInt().value == rhs.asInt().value
-            NOT_EQUAL -> lhs.asInt().value != rhs.asInt().value
+            EQUAL -> {
+                if (lhs.isInt() && rhs.isInt()) {
+                    lhs.asInt().value == rhs.asInt().value
+                } else if (lhs.isBool() && rhs.isBool()) {
+                    lhs.asBool().value == rhs.asBool().value
+                } else if (lhs.isString() && rhs.isString()) {
+                    lhs.asString().value == rhs.asString().value
+                } else if (lhs.isSet() && rhs.isSet()) {
+                    lhs.asSet().value == rhs.asSet().value
+                } else if (lhs.isArray() && rhs.isArray()) {
+                    lhs.asArray().items == rhs.asArray().items
+                } else {
+                    throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
+                }
+            }
+            NOT_EQUAL -> {
+                if (lhs.isInt() && rhs.isInt()) {
+                    lhs.asInt().value != rhs.asInt().value
+                } else if (lhs.isBool() && rhs.isBool()) {
+                    lhs.asBool().value != rhs.asBool().value
+                } else if (lhs.isString() && rhs.isString()) {
+                    lhs.asString().value != rhs.asString().value
+                } else if (lhs.isSet() && rhs.isSet()) {
+                    lhs.asSet().value != rhs.asSet().value
+                } else if (lhs.isArray() && rhs.isArray()) {
+                    lhs.asArray().items != rhs.asArray().items
+                } else {
+                    throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
+                }
+            }
             LOGICAL_AND -> {
                 if (lhs.isBool() && rhs.isBool()) {
                     lhs.asBool().value && rhs.asBool().value
@@ -80,8 +114,20 @@ class Interpreter(
     }
 
     fun interpret(expression: Expression): Value {
-        println("|- $expression")
+        return if (requireDebugLog) {
+            println("|- $expression")
+            execute(expression)
+        } else {
+            execute(expression)
+        }
+    }
+
+    private fun execute(expression: Expression): Value {
         if (expression is UnaryExpression) {
+            if (expression.value !is Identifier) {
+                throw KoyLangRuntimeException("Unary operation needs variable.")
+            }
+
             val identifier = try {
                 interpret(expression.value).asInt().value
             } catch (e: Exception) {
@@ -92,6 +138,7 @@ class Interpreter(
                 INCREMENT -> identifier + 1
                 DECREMENT -> identifier - 1
             }
+            interpret(assign(expression.value.name, IntegerLiteral(v)))
             return Value.of(v)
         }
         if (expression is BinaryExpression) {
@@ -173,14 +220,16 @@ class Interpreter(
             return value
         }
         if (expression is PrintLn) {
-            return interpret(expression.arg)
+            val v = interpret(expression.arg)
+            println(v.toString())
+            return v
         }
         if (expression is IfExpression) {
             val condition = interpret(expression.condition).asBool().value
             return if (condition) {
                 interpret(expression.thenClause)
             } else {
-                expression.elseClause?.let { interpret(it) } ?: Value.of(true)
+                expression.elseClause.map { interpret(it) }.orElse(Value.of(true))
             }
         }
         if (expression is WhileExpression) {

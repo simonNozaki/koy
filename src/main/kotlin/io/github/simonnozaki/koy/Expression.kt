@@ -1,5 +1,7 @@
 package io.github.simonnozaki.koy
 
+import java.util.Optional
+
 sealed class Expression {
     data class IntegerLiteral(
         val value: Int
@@ -63,7 +65,7 @@ sealed class Expression {
     data class IfExpression(
         val condition: Expression,
         val thenClause: Expression,
-        val elseClause: Expression?
+        val elseClause: Optional<Expression>
     ) : Expression()
 
     data class BlockExpression(

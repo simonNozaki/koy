@@ -1,0 +1,8 @@
+fn greet(msg) {
+  "Hej, " + msg;
+}
+
+fn main () {
+  val message = greet("Koy");
+  println(message);
+}
