@@ -109,7 +109,6 @@ class InterpreterTests {
     fun can_increment_in_while() {
         val statements = listOf(
             // mutable val i = 0;
-//            assign("i", IntegerLiteral(0)),
             MutableValDeclaration("i", IntegerLiteral(0)),
             // while(x < 10) {
             //   i = i + 1;
@@ -262,7 +261,7 @@ class InterpreterTests {
                 )
             ),
             // val r = object->print("koy");
-            ValDeclaration("r", MethodCall("object", "print", listOf(StringLiteral("Koy"))))
+            ValDeclaration("r", MethodCall(Identifier("object"), Identifier("print"), listOf(StringLiteral("Koy"))))
         )
             .forEach { interpreter.interpret(it) }
         println(interpreter.getValue("r"))
