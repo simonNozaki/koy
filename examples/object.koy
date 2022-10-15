@@ -1,0 +1,13 @@
+fn main() {
+  val koy = {
+    greet: |msg| {
+      "Hej, " + msg;
+    },
+    paradigm: "object-functional",
+    influencedBy: ["Kotlin", "Scala", "Clojure"]
+  };
+  println(koy);
+
+  val message = koy.greet("Koy!");
+  println(message);
+}
