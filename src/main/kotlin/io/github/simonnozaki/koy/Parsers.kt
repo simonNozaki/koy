@@ -23,7 +23,7 @@ object Parsers {
      * after 2nd: alphabet + number + _
      */
     private const val PATTERN_IDENTIFIER = "[a-zA-Z_][a-zA-Z0-9_]*"
-    private const val PATTERN_STRING_LITERAL = "((?!(\"|#\\{))(\\\\[rntfb\"'\\\\]|[^\\\\]))+"
+    private const val PATTERN_STRING_LITERAL = "((?!(\"|#\\{))(\\\\[rntfb\"'\\\\]|[^\\\\]))*"
 
     private val SPACING: Parser<Char, Unit> = wspace.map { Unit.unit }.or(regex("(?m)//.*$").map { Unit.unit })
     private val SPACINGS: Parser<Char, Unit> = SPACING.many().map { Unit.unit }
@@ -501,7 +501,7 @@ object Parsers {
         val condition = IF.then(expression().between(LPAREN, RPAREN))
         return condition.bind { c ->
             line().bind { thenClause ->
-                ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause.get()) }
+                ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause) }
             }
         }.attempt()
     }
