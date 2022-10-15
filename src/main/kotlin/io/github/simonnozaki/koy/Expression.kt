@@ -82,6 +82,12 @@ sealed class Expression {
         val args: List<Expression>
     ) : Expression()
 
+    data class MethodCall(
+        val objectExpression: Expression,
+        val method: Expression,
+        val args: List<Expression>
+    ) : Expression()
+
     data class LabeledParameter(
         val name: String,
         val parameter: Expression

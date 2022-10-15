@@ -237,4 +237,33 @@ class InterpreterTests {
         assertTrue(result.isSet())
         assertTrue(result.asSet().value.containsAll(listOf(Value.String("Java"), Value.String("Kotlin"), Value.String("Koy"))))
     }
+
+    @Test
+    fun `can get and call method related to object`() {
+        val interpreter = Interpreter()
+        listOf(
+            // val object = {
+            //   print: |msg| {
+            //     "hello, " + msg;
+            //   }
+            // }
+            ValDeclaration(
+                "object",
+                Object(
+                    mapOf(
+                        "print" to FunctionLiteral(
+                            listOf("msg"),
+                            Block(
+                                BinaryExpression(Operator.ADD, StringLiteral("Hello, "), Identifier("msg"))
+                            )
+                        )
+                    )
+                )
+            ),
+            // val r = object->print("koy");
+            ValDeclaration("r", MethodCall(Identifier("object"), Identifier("print"), listOf(StringLiteral("Koy"))))
+        )
+            .forEach { interpreter.interpret(it) }
+        println(interpreter.getValue("r"))
+    }
 }

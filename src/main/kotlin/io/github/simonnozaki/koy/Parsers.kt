@@ -52,6 +52,7 @@ object Parsers {
     private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
     private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
+    private val DOT: Parser<Char, Unit> = string(".").then(SPACINGS)
     private val COLON: Parser<Char, Unit> = string(":").then(SPACINGS)
     private val SEMI_COLON: Parser<Char, Unit> = string(";").then(SPACINGS)
     private val EQ: Parser<Char, Unit> = string("=").then(SPACINGS)
@@ -393,7 +394,29 @@ object Parsers {
      * expression <- comparative
      * ```
      */
-    fun expression(): Parser<Char, Expression> = comparative()
+    fun expression(): Parser<Char, Expression> = accessor()
+
+    /**
+     * # Property/Method Access
+     * ## PEG
+     * ```
+     * ```
+     * ## Sample syntax
+     * ```
+     * ```
+     */
+    private fun accessor(): Parser<Char, Expression> {
+        val methodCall: Parser<Char, BinaryOperator<Expression>> = DOT.attempt().map {
+            BinaryOperator { l, r ->
+                if (r is FunctionCall) {
+                    MethodCall(l, Identifier(r.name), r.args)
+                } else {
+                    MethodCall(l, r, listOf())
+                }
+            }
+        }
+        return comparative().chainl1(methodCall)
+    }
 
     /**
      * comparative <- addictive (

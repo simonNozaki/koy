@@ -11,12 +11,22 @@ import io.github.simonnozaki.koy.UnaryOperator.DECREMENT
 // TODO builtin functions
 class Interpreter(
     private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(mutableMapOf()),
-    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null)
+    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null),
+    private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment()
 ) {
     /**
      * Return the value from interpreter variable environment
      */
-    fun getValue(name: String) = variableEnvironment.findBindings(name)?.get(name)
+    fun getValue(name: String): Value? {
+        if (variableEnvironment.findBindings(name) != null) {
+            return variableEnvironment.findBindings(name)?.get(name)
+        }
+        if (objectRuntimeEnvironment.findBindings(name) != null) {
+            val v = objectRuntimeEnvironment.findBindings(name)?.get(name) ?: throw KoyLangRuntimeException("Not reaching here")
+            return Value.ofObject(v)
+        }
+        return null
+    }
 
     fun getFunction(name: String) = functionEnvironment.findBinding(name)
 
@@ -162,7 +172,7 @@ class Interpreter(
         if (expression is Identifier) {
             // Get variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
-            return bindingOptions?.let { it[expression.name] } ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
+            return getValue(expression.name) ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
         }
         if (expression is ValDeclaration) {
             val value = interpret(expression.expression)
@@ -170,6 +180,9 @@ class Interpreter(
                 is Value.Function -> {
                     val def = defineFunction(expression.name, value.args, value.body)
                     functionEnvironment.setAsVal(expression.name, def)
+                }
+                is Value.Object -> {
+                    objectRuntimeEnvironment.setVal(expression.name, value.value)
                 }
                 else -> variableEnvironment.setVal(expression.name, value)
             }
@@ -182,6 +195,9 @@ class Interpreter(
                     val def = defineFunction(expression.name, value.args, value.body)
                     functionEnvironment.setMutableVal(expression.name, def)
                 }
+                is Value.Object -> {
+                    objectRuntimeEnvironment.setMutableVal(expression.name, value.value)
+                }
                 else -> variableEnvironment.setMutableVal(expression.name, value)
             }
             return value
@@ -189,14 +205,18 @@ class Interpreter(
         if (expression is Assignment) {
             // Assign variable
             val bindingOptions = variableEnvironment.findBindings(expression.name)
+            val maybeObject = objectRuntimeEnvironment.findBindings(expression.name)
             val value = interpret(expression.expression)
-            if (bindingOptions == null) {
+            if (bindingOptions == null && maybeObject == null) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is not defined.")
             }
             if (variableEnvironment.isNotReAssignable(expression.name)) {
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration.")
             }
-            bindingOptions[expression.name] = value
+            when (value) {
+                is Value.Object -> maybeObject?.set(expression.name, value.value)
+                else -> bindingOptions?.set(expression.name, value)
+            }
             return value
         }
         if (expression is PrintLn) {
@@ -275,6 +295,47 @@ class Interpreter(
                 variableEnvironment.bindings[formalParam] = values[i]
             }
 
+            val result = interpret(body)
+            variableEnvironment = backup
+            return result
+        }
+        if (expression is MethodCall) {
+            val obj: Map<String, Value> = when (expression.objectExpression) {
+                is ObjectLiteral -> {
+                    // On calling method from object literal, create map
+                    expression.objectExpression.properties.entries.associate { it.key to interpret(it.value) }
+                }
+                is Identifier -> {
+                    // On calling method from object variable, get property name and value map from runtime
+                    objectRuntimeEnvironment.findBindings(expression.objectExpression.name)
+                        ?.get(expression.objectExpression.name)
+                        ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
+                }
+                is MethodCall -> {
+                    return interpret(expression.objectExpression)
+                }
+                else -> throw KoyLangRuntimeException("[ ${expression.objectExpression} ] is not object.")
+            }
+            if (expression.method !is Identifier) {
+                throw KoyLangRuntimeException("Method [ ${expression.method} ] should be identifier.")
+            }
+
+            val method = obj[expression.method.name]
+                ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] does not have a method or property [ ${expression.method} ].")
+            if (method !is Value.Function) {
+                return method
+            }
+            val body = method.body
+            val actualParams = expression.args
+            val formalParams = method.args
+            val values = actualParams.map { interpret(it) }
+
+            val backup = variableEnvironment
+            variableEnvironment = newEnvironment(variableEnvironment)
+            // TODO check parameter number and type before loop
+            for ((i, formalParam) in formalParams.withIndex()) {
+                variableEnvironment.bindings[formalParam] = values[i]
+            }
             val result = interpret(body)
             variableEnvironment = backup
             return result
