@@ -300,11 +300,28 @@ class Interpreter(
             return result
         }
         if (expression is MethodCall) {
-            val o = objectRuntimeEnvironment.findBindings(expression.objectName)
-                ?: throw KoyLangRuntimeException("Object [ ${expression.objectName} ] is not defined.")
-            // assert that property is not null and function literal to call with params
-            val method = o[expression.objectName]?.get(expression.methodName)
-                ?: throw KoyLangRuntimeException("Object [ ${expression.objectName} ] does not have a method or property [ ${expression.methodName} ].")
+            val obj: Map<String, Value> = when (expression.objectExpression) {
+                is ObjectLiteral -> {
+                    // On calling method from object literal, create map
+                    expression.objectExpression.properties.entries.associate { it.key to interpret(it.value) }
+                }
+                is Identifier -> {
+                    // On calling method from object variable, get property name and value map from runtime
+                    objectRuntimeEnvironment.findBindings(expression.objectExpression.name)
+                        ?.get(expression.objectExpression.name)
+                        ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
+                }
+                is MethodCall -> {
+                    return interpret(expression.objectExpression)
+                }
+                else -> throw KoyLangRuntimeException("[ ${expression.objectExpression} ] is not object.")
+            }
+            if (expression.method !is Identifier) {
+                throw KoyLangRuntimeException("Method [ ${expression.method} ] should be identifier.")
+            }
+
+            val method = obj[expression.method.name]
+                ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] does not have a method or property [ ${expression.method} ].")
             if (method !is Value.Function) {
                 return method
             }

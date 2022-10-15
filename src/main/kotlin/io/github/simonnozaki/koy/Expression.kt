@@ -83,8 +83,8 @@ sealed class Expression {
     ) : Expression()
 
     data class MethodCall(
-        val objectName: String,
-        val methodName: String,
+        val objectExpression: Expression,
+        val method: Expression,
         val args: List<Expression>
     ) : Expression()
 

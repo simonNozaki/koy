@@ -52,6 +52,7 @@ object Parsers {
     private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
     private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
+    private val DOT: Parser<Char, Unit> = string(".").then(SPACINGS)
     private val COLON: Parser<Char, Unit> = string(":").then(SPACINGS)
     private val SEMI_COLON: Parser<Char, Unit> = string(";").then(SPACINGS)
     private val EQ: Parser<Char, Unit> = string("=").then(SPACINGS)
@@ -311,29 +312,6 @@ object Parsers {
     }
 
     /**
-     * # Method call
-     * ## PEG
-     * ```
-     * methodCall <- identifier '->' identifier '(' (expression(, expression)*)? ')' / identifier
-     * ```
-     */
-    private fun methodCall(): Parser<Char, MethodCall> {
-        val methodCall = IDENT.bind { objectName ->
-            ARROW.then(IDENT).bind { methodName ->
-                expression().sepBy(COMMA).between(LPAREN, RPAREN).map { args ->
-                    MethodCall(objectName, methodName, args.toList())
-                }
-            }
-        }
-        val propertyAccess = IDENT.bind { objectName ->
-            ARROW.then(IDENT).map { propertyName ->
-                MethodCall(objectName, propertyName, listOf())
-            }
-        }
-        return methodCall.or(propertyAccess)
-    }
-
-    /**
      * ```
      * topLevelDefinition <- globalVariableDefinition / functionDefinition
      * ```
@@ -416,7 +394,29 @@ object Parsers {
      * expression <- comparative
      * ```
      */
-    fun expression(): Parser<Char, Expression> = comparative()
+    fun expression(): Parser<Char, Expression> = accessor()
+
+    /**
+     * # Property/Method Access
+     * ## PEG
+     * ```
+     * ```
+     * ## Sample syntax
+     * ```
+     * ```
+     */
+    private fun accessor(): Parser<Char, Expression> {
+        val methodCall: Parser<Char, BinaryOperator<Expression>> = DOT.attempt().map {
+            BinaryOperator { l, r ->
+                if (r is FunctionCall) {
+                    MethodCall(l, Identifier(r.name), r.args)
+                } else {
+                    MethodCall(l, r, listOf())
+                }
+            }
+        }
+        return comparative().chainl1(methodCall)
+    }
 
     /**
      * comparative <- addictive (
@@ -504,7 +504,6 @@ object Parsers {
             .or(arrayLiteral())    // '[' (expression) ']'
             .or(objectLiteral())   // '{' identifier ':' expression '}'
             .or(functionLiteral()) // '|' identifier '|' blockExpression
-            .or(methodCall())      // identifier '->' identifier / identifier '(' expression ')'
     }
 
     /**
