@@ -513,5 +513,15 @@ class ParsersTests {
 
             assertTrue(result.asBool().value)
         }
+
+        @Test
+        fun `can access property in object literal`() {
+            val interpreter = Interpreter()
+            val source = "{ name: \"Koy\" }.name"
+            val expression = Parsers.expression().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+
+            assertEquals("Koy", result.asString().value)
+        }
     }
 }
