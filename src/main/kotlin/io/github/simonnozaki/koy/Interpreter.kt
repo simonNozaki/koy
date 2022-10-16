@@ -171,7 +171,6 @@ class Interpreter(
         }
         if (expression is Identifier) {
             // Get variable
-            val bindingOptions = variableEnvironment.findBindings(expression.name)
             return getValue(expression.name) ?: throw KoyLangRuntimeException("Identifier ${expression.name} not found")
         }
         if (expression is ValDeclaration) {
@@ -353,8 +352,24 @@ class Interpreter(
         for (topLevel in topLevels) {
             when (topLevel) {
                 is FunctionDefinition -> functionEnvironment.setAsVal(topLevel.name, topLevel)
-                is ValDefinition -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
-                is MutableValDefinition -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
+                is ValDefinition -> {
+                    when (topLevel.expression) {
+                        is FunctionLiteral -> {
+                            val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
+                            functionEnvironment.setAsVal(topLevel.name, def)
+                        }
+                        else -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
+                    }
+                }
+                is MutableValDefinition -> {
+                    when (topLevel.expression) {
+                        is FunctionLiteral -> {
+                            val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
+                            functionEnvironment.setMutableVal(topLevel.name, def)
+                        }
+                        else -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
+                    }
+                }
             }
         }
         val mainFunction = functionEnvironment.getDefinition("main")
