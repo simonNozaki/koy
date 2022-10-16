@@ -12,7 +12,6 @@ import java.util.function.BinaryOperator
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
-// TODO property accessor for array and object
 // TODO regex
 // TODO `return` for block expression
 // TODO Tuple Literal
@@ -400,9 +399,12 @@ object Parsers {
      * # Property/Method Access
      * ## PEG
      * ```
+     * accessor <- comparative '.' ( comparative )*
      * ```
      * ## Sample syntax
      * ```
+     * val lang = { name: "koy" };
+     * lang.name;
      * ```
      */
     private fun accessor(): Parser<Char, Expression> {
