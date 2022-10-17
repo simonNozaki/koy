@@ -89,6 +89,33 @@ class ParsersTests {
 
             assertEquals("Hello Koy", result.asString().value)
         }
+
+
+        @Test
+        fun `can access props in object declaration`() {
+            val interpreter = Interpreter()
+            val source = """
+            val koy = {
+              greet: |msg| {
+                "Hej, " + msg;
+              },
+              paradigm: "object-functional",
+              influencedBy: ["Kotlin", "Scala", "Clojure"]
+            };
+            
+            fn main() {
+              println(koy);
+            
+              val message = koy.greet("Koy!");
+              println(message);
+              message;
+            }
+            """.trimIndent()
+            val program = Parsers.program().parse(Input.of(source)).result
+            val result = interpreter.callMain(program)
+
+            assertEquals("Hej, Koy!", result.asString().value)
+        }
     }
 
     @Nested
@@ -411,12 +438,14 @@ class ParsersTests {
             val interpreter = Interpreter()
             val source = """
             mutable val i = 0;
-            {
+            while (i < 10) {
               ++i;
             }
             println(i);
             """.trimIndent()
             Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+
+            assertEquals(10, interpreter.getValue("i")?.asInt()?.value)
         }
     }
 
