@@ -358,6 +358,10 @@ class Interpreter(
                             val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
                             functionEnvironment.setAsVal(topLevel.name, def)
                         }
+                        is ObjectLiteral -> {
+                            val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
+                            objectRuntimeEnvironment.setVal(topLevel.name, o)
+                        }
                         else -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
                     }
                 }
@@ -366,6 +370,10 @@ class Interpreter(
                         is FunctionLiteral -> {
                             val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
                             functionEnvironment.setMutableVal(topLevel.name, def)
+                        }
+                        is ObjectLiteral -> {
+                            val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
+                            objectRuntimeEnvironment.setMutableVal(topLevel.name, o)
                         }
                         else -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
                     }
