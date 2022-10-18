@@ -393,32 +393,7 @@ object Parsers {
      * expression <- comparative
      * ```
      */
-    fun expression(): Parser<Char, Expression> = accessor()
-
-    /**
-     * # Property/Method Access
-     * ## PEG
-     * ```
-     * accessor <- comparative '.' ( comparative )*
-     * ```
-     * ## Sample syntax
-     * ```
-     * val lang = { name: "koy" };
-     * lang.name;
-     * ```
-     */
-    private fun accessor(): Parser<Char, Expression> {
-        val methodCall: Parser<Char, BinaryOperator<Expression>> = DOT.attempt().map {
-            BinaryOperator { l, r ->
-                if (r is FunctionCall) {
-                    MethodCall(l, Identifier(r.name), r.args)
-                } else {
-                    MethodCall(l, r, listOf())
-                }
-            }
-        }
-        return comparative().chainl1(methodCall)
-    }
+    fun expression(): Parser<Char, Expression> = comparative()
 
     /**
      * comparative <- addictive (
@@ -457,9 +432,11 @@ object Parsers {
     }
 
     /**
+     * # Multitive
+     * ## PEG
      * ```
      * multitive <- primary
-     *   '(+' primary / '-' primary)*;
+     *   ('+' primary / '-' primary / '.' primary)*;
      * ```
      */
     private fun multitive(): Parser<Char, Expression> {
@@ -472,7 +449,16 @@ object Parsers {
         val remain: Parser<Char, BinaryOperator<Expression>> = PERCENT.map {
             BinaryOperator { l, r -> remain(l, r) }
         }
-        return primary().chainl1(multiply.or(divide).or(remain))
+        val methodCall: Parser<Char, BinaryOperator<Expression>> = DOT.attempt().map {
+            BinaryOperator { l, r ->
+                if (r is FunctionCall) {
+                    MethodCall(l, Identifier(r.name), r.args)
+                } else {
+                    MethodCall(l, r, listOf())
+                }
+            }
+        }
+        return primary().chainl1(multiply.or(divide).or(remain).or(methodCall))
     }
 
     /**
