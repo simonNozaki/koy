@@ -458,7 +458,11 @@ object Parsers {
                 }
             }
         }
-        return primary().chainl1(multiply.or(divide).or(remain).or(methodCall))
+        val indexAccess: Parser<Char, BinaryOperator<Expression>> = ARROW.attempt().map {
+            BinaryOperator { l, r -> IndexAccess(l, r)}
+        }
+
+        return primary().chainl1(multiply.or(divide).or(remain).or(methodCall).or(indexAccess))
     }
 
     /**

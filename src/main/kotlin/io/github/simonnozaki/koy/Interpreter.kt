@@ -251,6 +251,11 @@ class Interpreter(
             }
             return v
         }
+        if (expression is IndexAccess) {
+            val index = interpret(expression.index).asInt()
+            val collection = interpret(expression.collection).asArray()
+            return collection.items[index.value]
+        }
         if (expression is FunctionCall) {
             val definition = functionEnvironment.getDefinition(expression.name)
 
@@ -310,10 +315,7 @@ class Interpreter(
                         ?.get(expression.objectExpression.name)
                         ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
                 }
-                is MethodCall -> {
-                    return interpret(expression.objectExpression)
-                }
-                else -> throw KoyLangRuntimeException("[ ${expression.objectExpression} ] is not object.")
+                else -> return interpret(expression.objectExpression)
             }
             if (expression.method !is Identifier) {
                 throw KoyLangRuntimeException("Method [ ${expression.method} ] should be identifier.")

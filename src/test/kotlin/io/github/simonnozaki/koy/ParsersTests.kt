@@ -447,6 +447,21 @@ class ParsersTests {
 
             assertEquals(10, interpreter.getValue("i")?.asInt()?.value)
         }
+
+        @Test
+        fun `can get element in array`() {
+            val interpreter = Interpreter()
+            val source = """
+            mutable val i = 0;
+            val odd = [1, 3, 5];
+            while (i < 3) {
+              println(odd->i);
+              ++i;
+            }
+            """.trimIndent()
+
+            Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+        }
     }
 
     @Nested
@@ -551,6 +566,16 @@ class ParsersTests {
             val result = interpreter.interpret(expression)
 
             assertEquals("Koy", result.asString().value)
+        }
+
+        @Test
+        fun `can get element in array literal`() {
+            val interpreter = Interpreter()
+            val source = "[\"kotlin\", \"clojure\", \"koy\"]->2"
+            val expression = Parsers.expression().parse(Input.of(source)).result
+            val result = interpreter.interpret(expression)
+
+            assertEquals("koy", result.asString().value)
         }
     }
 }

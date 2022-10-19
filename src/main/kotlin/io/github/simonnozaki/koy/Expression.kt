@@ -88,6 +88,11 @@ sealed class Expression {
         val args: List<Expression>
     ) : Expression()
 
+    data class IndexAccess(
+        val collection: Expression,
+        val index: Expression
+    ) : Expression()
+
     data class LabeledParameter(
         val name: String,
         val parameter: Expression
