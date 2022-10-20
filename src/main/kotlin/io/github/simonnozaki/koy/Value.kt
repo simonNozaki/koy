@@ -30,6 +30,8 @@ sealed class Value {
 
     fun isObject(): Boolean = this is Object
 
+    fun isNil() = this is Nil
+
     data class Int(
         val value: kotlin.Int
     ) : Value() {
@@ -71,6 +73,10 @@ sealed class Value {
         val value: kotlin.collections.Set<Value>
     ) : Value() {
         override fun toString(): kotlin.String = value.toString()
+    }
+
+    object Nil : Value() {
+        override fun toString() = throw KoyLangRuntimeException("null")
     }
 
     companion object {

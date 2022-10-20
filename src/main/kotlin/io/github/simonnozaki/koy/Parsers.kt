@@ -50,6 +50,7 @@ object Parsers {
     private val MUTABLE: Parser<Char, Unit> = string("mutable").then(SPACINGS)
     private val TRUE: Parser<Char, Unit> = string("true").then(SPACINGS)
     private val FALSE: Parser<Char, Unit> = string("false").then(SPACINGS)
+    private val NIL: Parser<Char, Unit> = string("nil").then(SPACINGS)
     private val COMMA: Parser<Char, Unit> = string(",").then(SPACINGS)
     private val DOT: Parser<Char, Unit> = string(".").then(SPACINGS)
     private val COLON: Parser<Char, Unit> = string(":").then(SPACINGS)
@@ -78,6 +79,7 @@ object Parsers {
             D_QUOTE.map { str(v) }
         }
     }.bind { v -> SPACINGS.map { v } }
+    private val nil: Parser<Char, Nil> = NIL.map { Nil }.bind { v -> SPACINGS.map { v } }
 
     /**
      * arrayLiteral <- '[' (expression(, expression)*)? ']'
@@ -488,6 +490,7 @@ object Parsers {
             .or(integer)
             .or(bool)
             .or(string)
+            .or(nil)
             .or(functionCall())    // identifier '(' identifier ')'
             .or(labeledCall())     // identifier '[' identifier '=' expression ']'
             .or(identifier())      // identifier

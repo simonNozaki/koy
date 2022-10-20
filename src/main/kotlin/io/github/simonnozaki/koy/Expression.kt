@@ -32,6 +32,8 @@ sealed class Expression {
         val value: Set<Expression>
     ) : Expression()
 
+    object Nil : Expression()
+
     data class BinaryExpression(
         val operator: Operator,
         val lhs: Expression,

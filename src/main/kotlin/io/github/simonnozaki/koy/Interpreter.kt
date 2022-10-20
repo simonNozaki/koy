@@ -76,6 +76,10 @@ class Interpreter(
                     lhs.asSet().value == rhs.asSet().value
                 } else if (lhs.isArray() && rhs.isArray()) {
                     lhs.asArray().items == rhs.asArray().items
+                } else if (lhs.isNil() && rhs.isNil()) {
+                    true
+                } else if (lhs.isNil() || rhs.isNil()) {
+                    false
                 } else {
                     throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
                 }
@@ -143,6 +147,9 @@ class Interpreter(
         }
         if (expression is BinaryExpression) {
             return getBinaryOpsResult(expression)
+        }
+        if (expression is Nil) {
+            return Value.Nil
         }
         if (expression is IntegerLiteral) {
             return Value.of(expression.value)
@@ -252,9 +259,13 @@ class Interpreter(
             return v
         }
         if (expression is IndexAccess) {
-            val index = interpret(expression.index).asInt()
-            val collection = interpret(expression.collection).asArray()
-            return collection.items[index.value]
+            return try {
+                val index = interpret(expression.index).asInt()
+                val collection = interpret(expression.collection).asArray()
+                collection.items[index.value]
+            } catch (e: Exception) {
+                Value.Nil
+            }
         }
         if (expression is FunctionCall) {
             val definition = functionEnvironment.getDefinition(expression.name)
