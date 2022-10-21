@@ -453,14 +453,32 @@ class ParsersTests {
             val interpreter = Interpreter()
             val source = """
             mutable val i = 0;
+            mutable val j = 0;
             val odd = [1, 3, 5];
             while (i < 3) {
               println(odd->i);
+              j = odd->i;
               ++i;
             }
             """.trimIndent()
 
             Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+
+            assertEquals(5, interpreter.getValue("j")?.asInt()?.value)
+        }
+
+        @Test
+        fun `should be nil with not existing elm in array`() {
+            val interpreter = Interpreter()
+            val source = """
+            mutable val j = 0;
+            val odd = [1, 3, 5];
+            val b = odd->3 == nil;
+            """.trimIndent()
+
+            Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+
+            interpreter.getValue("b")?.asBool()?.value?.let { assertTrue(it) }
         }
     }
 
@@ -570,12 +588,24 @@ class ParsersTests {
 
         @Test
         fun `can get element in array literal`() {
-            val interpreter = Interpreter()
             val source = "[\"kotlin\", \"clojure\", \"koy\"]->2"
-            val expression = Parsers.expression().parse(Input.of(source)).result
-            val result = interpreter.interpret(expression)
+            val result = getValue(source)
 
             assertEquals("koy", result.asString().value)
+        }
+
+        @Test
+        fun `is nil`() {
+            val source = "nil"
+            val result = getValue(source)
+
+            assertTrue(result.isNil())
+        }
+
+        private fun getValue(source: String): Value {
+            val interpreter = Interpreter()
+            val expression = Parsers.expression().parse(Input.of(source)).result
+            return interpreter.interpret(expression)
         }
     }
 }
