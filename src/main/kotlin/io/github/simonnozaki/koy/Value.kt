@@ -76,7 +76,7 @@ sealed class Value {
     }
 
     object Nil : Value() {
-        override fun toString() = throw KoyLangRuntimeException("null")
+        override fun toString() = ""
     }
 
     companion object {
