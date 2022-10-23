@@ -1,0 +1,27 @@
+mutable val count_index = 0;
+fn count(array, index) {
+  if (array->index != nil) {
+    count_index = index + 1;
+    count(array, count_index);
+  }
+  count_index;
+}
+
+fn size(array) {
+  count(array, 0);
+}
+
+fn first(array) {
+  array->0;
+}
+
+fn last(array) {
+  val s = size(array);
+  array->(s - 1);
+}
+
+fn main() {
+  val f = ["kotlin", "koy", "java", "scala"];
+  println(size(f));
+  println(last(f));
+}
