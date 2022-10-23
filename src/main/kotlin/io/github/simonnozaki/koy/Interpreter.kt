@@ -10,7 +10,7 @@ import io.github.simonnozaki.koy.UnaryOperator.DECREMENT
 
 // TODO builtin functions
 class Interpreter(
-    private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(mutableMapOf()),
+    private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(),
     private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null),
     private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment()
 ) {
@@ -28,7 +28,7 @@ class Interpreter(
         return null
     }
 
-    fun getFunction(name: String) = functionEnvironment.findBinding(name)
+    fun getFunction(name: String) = functionEnvironment.getDefinition(name)
 
     fun getFunctions() = functionEnvironment
 
@@ -189,7 +189,7 @@ class Interpreter(
             when (value) {
                 is Value.Function -> {
                     val def = defineFunction(expression.name, value.args, value.body)
-                    functionEnvironment.setAsVal(expression.name, def)
+                    functionEnvironment.setAsVal(def)
                 }
                 is Value.Object -> {
                     objectRuntimeEnvironment.setVal(expression.name, value.value)
@@ -203,7 +203,7 @@ class Interpreter(
             when (value) {
                 is Value.Function -> {
                     val def = defineFunction(expression.name, value.args, value.body)
-                    functionEnvironment.setMutableVal(expression.name, def)
+                    functionEnvironment.setMutableVal(def)
                 }
                 is Value.Object -> {
                     objectRuntimeEnvironment.setMutableVal(expression.name, value.value)
@@ -368,12 +368,12 @@ class Interpreter(
         val topLevels = program.definitions
         for (topLevel in topLevels) {
             when (topLevel) {
-                is FunctionDefinition -> functionEnvironment.setAsVal(topLevel.name, topLevel)
+                is FunctionDefinition -> functionEnvironment.setAsVal(topLevel)
                 is ValDefinition -> {
                     when (topLevel.expression) {
                         is FunctionLiteral -> {
                             val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
-                            functionEnvironment.setAsVal(topLevel.name, def)
+                            functionEnvironment.setAsVal(def)
                         }
                         is ObjectLiteral -> {
                             val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
@@ -392,7 +392,7 @@ class Interpreter(
                     when (topLevel.expression) {
                         is FunctionLiteral -> {
                             val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
-                            functionEnvironment.setMutableVal(topLevel.name, def)
+                            functionEnvironment.setMutableVal(def)
                         }
                         is ObjectLiteral -> {
                             val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }

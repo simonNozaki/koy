@@ -4,37 +4,40 @@ import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 
 data class FunctionEnvironment(
     // TODO consider renaming to letFunctions
-    val bindings: MutableMap<String, FunctionDefinition> = mutableMapOf(),
-    private val valFunctions: MutableMap<String, FunctionDefinition> = mutableMapOf()
+    private val bindings: MutableList<FunctionDefinition> = mutableListOf(),
+    private val valFunctions: MutableList<FunctionDefinition> = mutableListOf()
 ) {
+
     /**
      * Set variable to environment as `val`
      */
-    fun setAsVal(key: String, definition: FunctionDefinition) {
-        valFunctions[key] = definition
+    fun setAsVal(definition: FunctionDefinition) {
+        valFunctions.add(definition)
     }
 
     /**
      * Set variable to environment as `mutable val`
      */
-    fun setMutableVal(key: String, definition: FunctionDefinition) {
-        if (hasDeclaration(key)) {
-            throw KoyLangRuntimeException("Declaration [ $key ] is already existed, so can not declare again.")
+    fun setMutableVal(definition: FunctionDefinition) {
+        if (hasDeclaration(definition.name)) {
+            throw KoyLangRuntimeException("Declaration [ ${definition.name} ] is already existed, so can not declare again.")
         }
-        bindings[key] = definition
+        bindings.add(definition)
     }
 
     /**
      * Return true if the identifier of `key` already exists.
      */
-    private fun hasDeclaration(key: String) = bindings[key] != null || valFunctions[key] != null
+    private fun hasDeclaration(key: String): Boolean {
+        return bindings.count { it.name == key } == 1 || valFunctions.count { it.name == key } == 1
+    }
 
     /**
      * Return function definition from `mutable val` or `val` declaration.
      */
     fun getDefinition(key: String): FunctionDefinition {
-        val def = bindings[key]
-        val valDef = valFunctions[key]
+        val def = bindings.firstOrNull { it.name == key }
+        val valDef = valFunctions.firstOrNull { it.name == key }
         if (valDef != null) {
             return valDef
         }
@@ -42,17 +45,5 @@ data class FunctionEnvironment(
             return def
         }
         throw KoyLangRuntimeException("Function [ $key ] is not defined.")
-    }
-
-    fun findBinding(key: String): FunctionDefinition {
-        val def = bindings[key]
-        val valDef = valFunctions[key]
-        if (valDef != null) {
-            return valDef
-        }
-        if (def != null) {
-            return def
-        }
-        throw KoyLangRuntimeException("Definition [ $key ] is not defined.")
     }
 }
