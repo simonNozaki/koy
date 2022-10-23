@@ -39,7 +39,8 @@ sealed class Value {
     }
 
     data class Array(
-        val items: List<Value>
+        val items: List<Value>,
+        val size: kotlin.Int
     ) : Value() {
         override fun toString(): kotlin.String = items.map { it.toString() }.toString()
     }
@@ -70,7 +71,8 @@ sealed class Value {
     }
 
     data class Set(
-        val value: kotlin.collections.Set<Value>
+        val value: kotlin.collections.Set<Value>,
+        val size: kotlin.Int
     ) : Value() {
         override fun toString(): kotlin.String = value.toString()
     }
@@ -86,10 +88,10 @@ sealed class Value {
         fun of(v: Any): Value {
             return when (v) {
                 is kotlin.Int -> Int(v)
-                is List<*> -> Array(v as List<Value>)
+                is List<*> -> Array(v as List<Value>, v.size)
                 is Boolean -> Bool(v)
                 is kotlin.String -> String(v)
-                is kotlin.collections.Set<*> -> Set(v as kotlin.collections.Set<Value>)
+                is kotlin.collections.Set<*> -> Set(v as kotlin.collections.Set<Value>, v.size)
                 else -> throw RuntimeException("Type of $v can not convert")
             }
         }
