@@ -82,6 +82,8 @@ object Parsers {
     private val nil: Parser<Char, Nil> = NIL.map { Nil }.bind { v -> SPACINGS.map { v } }
 
     /**
+     * # Array Literal
+     * ## PEG
      * arrayLiteral <- '[' (expression(, expression)*)? ']'
      */
     private fun arrayLiteral(): Parser<Char, ArrayLiteral> {
@@ -461,7 +463,7 @@ object Parsers {
             }
         }
         val indexAccess: Parser<Char, BinaryOperator<Expression>> = ARROW.attempt().map {
-            BinaryOperator { l, r -> IndexAccess(l, r)}
+            BinaryOperator { l, r -> IndexAccess(l, r) }
         }
 
         return primary().chainl1(multiply.or(divide).or(remain).or(methodCall).or(indexAccess))
@@ -488,11 +490,11 @@ object Parsers {
             }
         }
             .or(integer)
-            .or(bool)
             .or(string)
-            .or(nil)
             .or(functionCall())    // identifier '(' identifier ')'
             .or(labeledCall())     // identifier '[' identifier '=' expression ']'
+            .or(nil)
+            .or(bool)
             .or(identifier())      // identifier
             .or(unary())           // ++identifier / --identifier
             .or(setLiteral())      // '%' '(' (expression(, expression)) ')'
