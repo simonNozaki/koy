@@ -2,7 +2,7 @@ package io.github.simonnozaki.koy
 
 data class VariableEnvironment(
     val bindings: MutableMap<String, Value>,
-    val next: VariableEnvironment?,
+    private val next: VariableEnvironment?,
     private val immutables: MutableMap<String, Value> = mutableMapOf()
 ) {
 
