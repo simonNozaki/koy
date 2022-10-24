@@ -9,6 +9,7 @@ import kotlin.test.assertFalse
 /**
  * Parsers Tests
  */
+// TODO break down test classes each
 class ParsersTests {
     @Nested
     @DisplayName("Function and main program parsers tests")
@@ -17,8 +18,8 @@ class ParsersTests {
         fun can_define_and_call_function() {
             val interpreter = Interpreter()
             val source = """
-            fn add(n, m) {
-              n + m;
+            fn add(x, y) {
+              x + y;
             }
             fn main() {
               add(1, 2);
@@ -60,11 +61,11 @@ class ParsersTests {
         fun can_call_labeled_function_call() {
             val source = """
             fn power(n) {
-              n * n;
+              v * v;
             }
             
             fn main() {
-              power[n=5];
+              power[v=5];
             }
             """
             val program = Parsers.program().parse(Input.of(source)).result
@@ -579,11 +580,21 @@ class ParsersTests {
         @Test
         fun `can access property in object literal`() {
             val interpreter = Interpreter()
-            val source = "{ name: \"Koy\" }.name"
+            val source = "{ lang: \"Koy\" }.lang"
             val expression = Parsers.expression().parse(Input.of(source)).result
             val result = interpreter.interpret(expression)
 
             assertEquals("Koy", result.asString().value)
+        }
+
+        @Test
+        fun `should be defined an array of 3 elements`() {
+            val source = "[\"kotlin\", \"koy\", \"java\"]"
+            val result = getValue(source)
+
+            assertTrue(result.isArray())
+            assertEquals(3, result.asArray().size)
+            assertTrue(result.asArray().items.containsAll(setOf(Value.of("kotlin"), Value.of("koy"), Value.of("java"))))
         }
 
         @Test
