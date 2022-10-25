@@ -396,12 +396,6 @@ class Interpreter(
                             val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
                             objectRuntimeEnvironment.setVal(topLevel.name, o)
                         }
-                        is ObjectLiteral -> {
-                            val props = topLevel.expression.properties
-                                .map { it.key to interpret(it.value) }
-                                .toMap()
-                            objectRuntimeEnvironment.setVal(topLevel.name, props)
-                        }
                         else -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
                     }
                 }
@@ -414,12 +408,6 @@ class Interpreter(
                         is ObjectLiteral -> {
                             val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
                             objectRuntimeEnvironment.setMutableVal(topLevel.name, o)
-                        }
-                        is ObjectLiteral -> {
-                            val props = topLevel.expression.properties
-                                .map { it.key to interpret(it.value) }
-                                .toMap()
-                            objectRuntimeEnvironment.setMutableVal(topLevel.name, props)
                         }
                         else -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
                     }
