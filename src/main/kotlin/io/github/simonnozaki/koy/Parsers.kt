@@ -65,6 +65,7 @@ object Parsers {
     private val D_QUOTE: Parser<Char, Unit> = string("\"").then(SPACINGS)
     private val PIPE: Parser<Char, Unit> = string("|").then(SPACINGS)
     private val ARROW: Parser<Char, Unit> = string("->").then(SPACINGS)
+    private val BACK_ARROW: Parser<Char, Unit> = string("<-").then(SPACINGS)
     private val LOGICAL_AND: Parser<Char, Unit> = string("and").then(SPACINGS)
     private val LOGICAL_OR: Parser<Char, Unit> = string("or").then(SPACINGS)
     private val PERCENT: Parser<Char, Unit> = string("%").then(SPACINGS)
@@ -465,8 +466,11 @@ object Parsers {
         val indexAccess: Parser<Char, BinaryOperator<Expression>> = ARROW.attempt().map {
             BinaryOperator { l, r -> IndexAccess(l, r) }
         }
+        val pushElement: Parser<Char, BinaryOperator<Expression>> = BACK_ARROW.attempt().map {
+            BinaryOperator { l, r -> PushElement(l, r) }
+        }
 
-        return primary().chainl1(multiply.or(divide).or(remain).or(methodCall).or(indexAccess))
+        return primary().chainl1(multiply.or(divide).or(remain).or(methodCall).or(indexAccess).or(pushElement))
     }
 
     /**

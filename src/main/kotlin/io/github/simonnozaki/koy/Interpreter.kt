@@ -271,6 +271,23 @@ class Interpreter(
                 Value.Nil
             }
         }
+        if (expression is PushElement) {
+            val struct = interpret(expression.struct)
+            val elm = interpret(expression.element)
+            when (struct) {
+                is Value.Array -> {
+                    val mutableItems = struct.items.toMutableList()
+                    mutableItems.add(elm)
+                    Value.Array(mutableItems.toList(), mutableItems.size)
+                }
+                is Value.Set -> {
+                    val mutableSet = struct.value.toMutableSet()
+                    mutableSet.add(elm)
+                    Value.Set(mutableSet, mutableSet.size)
+                }
+                else -> throw KoyLangRuntimeException("Subject $struct is not pushable.")
+            }
+        }
         if (expression is FunctionCall) {
             val definition = functionEnvironment.getDefinition(expression.name)
 

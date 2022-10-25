@@ -95,6 +95,11 @@ sealed class Expression {
         val index: Expression
     ) : Expression()
 
+    data class PushElement(
+        val struct: Expression,
+        val element: Expression
+    ) : Expression()
+
     data class LabeledParameter(
         val name: String,
         val parameter: Expression
