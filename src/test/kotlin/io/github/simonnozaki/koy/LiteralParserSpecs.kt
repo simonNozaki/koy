@@ -2,6 +2,7 @@ package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -18,7 +19,7 @@ class LiteralParserSpecs {
     fun `is true literal`() {
         val expression = Parsers.expression().parse(Input.of("true")).result
         val result = Interpreter().interpret(expression)
-        Assertions.assertTrue(result.asBool().value)
+        assertTrue(result.asBool().value)
     }
 
     @Test
@@ -72,7 +73,7 @@ class LiteralParserSpecs {
         val result = interpreter.interpret(expression)
         when (result) {
             is Value.Set -> {
-                Assertions.assertTrue(result.value.containsAll(listOf(Value.String("kotlin"), Value.String("koy"))))
+                assertTrue(result.value.containsAll(listOf(Value.String("kotlin"), Value.String("koy"))))
             }
             else -> throw RuntimeException()
         }
@@ -95,7 +96,7 @@ class LiteralParserSpecs {
         val expression = Parsers.expression().parse(Input.of(source)).result
         val result = interpreter.interpret(expression)
 
-        Assertions.assertTrue(result.asBool().value)
+        assertTrue(result.asBool().value)
     }
 
     @Test
@@ -113,9 +114,9 @@ class LiteralParserSpecs {
         val source = "[\"kotlin\", \"koy\", \"java\"]"
         val result = getValue(source)
 
-        Assertions.assertTrue(result.isArray())
+        assertTrue(result.isArray())
         assertEquals(3, result.asArray().size)
-        Assertions.assertTrue(
+        assertTrue(
             result.asArray().items.containsAll(
                 setOf(
                     Value.of("kotlin"),
@@ -139,7 +140,35 @@ class LiteralParserSpecs {
         val source = "nil"
         val result = getValue(source)
 
-        Assertions.assertTrue(result.isNil())
+        assertTrue(result.isNil())
+    }
+
+    @Test
+    fun `conjoin element with array literal`() {
+        val source = "[1, 3, 5]<-7"
+        val result = getValue(source)
+
+        assertTrue(result.isArray())
+        assertTrue(result.asArray().items.containsAll(listOf(
+            Value.of(1),
+            Value.of(3),
+            Value.of(5),
+            Value.of(7)
+        )))
+    }
+
+    @Test
+    fun `conjoin element with set literal`() {
+        val source = "%{1, 3, 5}<-7"
+        val result = getValue(source)
+
+        assertTrue(result.isSet())
+        assertTrue(result.asSet().value.containsAll(listOf(
+            Value.of(1),
+            Value.of(3),
+            Value.of(5),
+            Value.of(7)
+        )))
     }
 
     private fun getValue(source: String): Value {

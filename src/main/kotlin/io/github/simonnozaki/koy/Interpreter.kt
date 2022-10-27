@@ -274,7 +274,7 @@ class Interpreter(
         if (expression is PushElement) {
             val struct = interpret(expression.struct)
             val elm = interpret(expression.element)
-            when (struct) {
+            return when (struct) {
                 is Value.Array -> {
                     val mutableItems = struct.items.toMutableList()
                     mutableItems.add(elm)
@@ -283,7 +283,7 @@ class Interpreter(
                 is Value.Set -> {
                     val mutableSet = struct.value.toMutableSet()
                     mutableSet.add(elm)
-                    Value.Set(mutableSet, mutableSet.size)
+                    Value.Set(mutableSet.toSet(), mutableSet.size)
                 }
                 else -> throw KoyLangRuntimeException("Subject $struct is not pushable.")
             }

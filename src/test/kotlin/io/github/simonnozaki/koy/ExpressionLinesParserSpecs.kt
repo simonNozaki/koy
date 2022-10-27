@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ExpressionLinesParserSpecs {
     @Test
@@ -351,6 +352,52 @@ class ExpressionLinesParserSpecs {
         Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
 
         assertEquals(5, interpreter.getValue("j")?.asInt()?.value)
+    }
+
+    @Test
+    fun `should conjoin element with array`() {
+        val interpreter = Interpreter()
+        val source = """
+        val odd = [1, 3, 5];
+        val odd2 = odd<-7;
+        println(odd);
+        println(odd2);
+        """.trimIndent()
+        Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+        val odd = interpreter.getValue("odd")?.asArray()
+        val odd2 = interpreter.getValue("odd2")?.asArray()
+
+        odd?.let { assertEquals(3, it.items.size) }
+        odd2?.let { assertEquals(4, it.items.size) }
+        odd2?.let { assertTrue(it.items.containsAll(listOf(
+            Value.of(1),
+            Value.of(3),
+            Value.of(5),
+            Value.of(7)
+        ))) }
+    }
+
+    @Test
+    fun `should conjoin element with set`() {
+        val interpreter = Interpreter()
+        val source = """
+        val odd = %{1, 3, 5};
+        val odd2 = odd<-7;
+        println(odd);
+        println(odd2);
+        """.trimIndent()
+        Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+        val odd = interpreter.getValue("odd")?.asSet()
+        val odd2 = interpreter.getValue("odd2")?.asSet()
+
+        odd?.let { assertEquals(3, it.value.size) }
+        odd2?.let { assertEquals(4, it.value.size) }
+        odd2?.let { assertTrue(it.value.containsAll(listOf(
+            Value.of(1),
+            Value.of(3),
+            Value.of(5),
+            Value.of(7)
+        ))) }
     }
 
     @Test
