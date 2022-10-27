@@ -21,7 +21,12 @@ fn last(array) {
 }
 
 fn main() {
-  val f = ["kotlin", "koy", "java", "scala"];
-  println(size(f));
-  println(last(f));
+  val langs = ["kotlin", "koy", "java", "scala"];
+  println(size(langs));
+  println(last(langs));
+
+  val states = %{"UNPROCESSED", "DONE"};
+  val states2 = states<-"IN PROGRESS";
+  println(states);
+  println(states2);
 }
