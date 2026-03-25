@@ -72,11 +72,15 @@ class Interpreter(
             }
             DIVIDE -> {
                 requireBothInt(lhs, rhs, "divide")
-                lhs.asInt().value / rhs.asInt().value
+                val right = rhs.asInt().value
+                if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
+                lhs.asInt().value / right
             }
             REMAINDER -> {
                 requireBothInt(lhs, rhs, "remainder")
-                lhs.asInt().value % rhs.asInt().value
+                val right = rhs.asInt().value
+                if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
+                lhs.asInt().value % right
             }
             LESS_THAN -> {
                 requireBothInt(lhs, rhs, "less-than")
@@ -324,10 +328,10 @@ class Interpreter(
             val formalParams = definition.args
             val body = definition.body
 
-            val values = actualParams.map { interpret(it) }
             if (actualParams.size != formalParams.size) {
                 throw KoyLangRuntimeException("Function ${expression.name} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
             }
+            val values = actualParams.map { interpret(it) }
 
             // Called variable environment should be separated from Caller
             val backup = this.variableEnvironment
@@ -393,10 +397,10 @@ class Interpreter(
             val body = method.body
             val actualParams = expression.args
             val formalParams = method.args
-            val values = actualParams.map { interpret(it) }
             if (actualParams.size != formalParams.size) {
                 throw KoyLangRuntimeException("Method ${expression.method} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
             }
+            val values = actualParams.map { interpret(it) }
 
             val backup = variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)

@@ -42,6 +42,20 @@ class InterpreterErrorSpecs {
     }
 
     @Test
+    fun `should throw on divide by zero`() {
+        assertThrows<KoyLangRuntimeException> {
+            Interpreter().interpret(divide(integer(10), integer(0)))
+        }
+    }
+
+    @Test
+    fun `should throw on remainder by zero`() {
+        assertThrows<KoyLangRuntimeException> {
+            Interpreter().interpret(remain(integer(10), integer(0)))
+        }
+    }
+
+    @Test
     fun `should throw on less-than with non-integer`() {
         assertThrows<KoyLangRuntimeException> {
             Interpreter().interpret(lessThan(str("hello"), integer(1)))
