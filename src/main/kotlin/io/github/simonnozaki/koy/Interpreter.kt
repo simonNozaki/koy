@@ -43,6 +43,11 @@ class Interpreter(
 
     private var requireDebugLog = false
 
+    private fun requireBothInt(lhs: Value, rhs: Value, op: String) {
+        if (lhs.isInt() && rhs.isInt()) return
+        throw KoyLangRuntimeException("$lhs and $rhs must be integers on $op operation")
+    }
+
     private fun getBinaryOpsResult(binaryExpression: BinaryExpression): Value {
         val lhs = interpret(binaryExpression.lhs)
         val rhs = interpret(binaryExpression.rhs)
@@ -57,14 +62,42 @@ class Interpreter(
                     throw KoyLangRuntimeException("$lhs and $rhs is not compatible on add operation")
                 }
             }
-            SUBTRACT -> lhs.asInt().value - rhs.asInt().value
-            MULTIPLY -> lhs.asInt().value * rhs.asInt().value
-            DIVIDE -> lhs.asInt().value / rhs.asInt().value
-            REMAINDER -> lhs.asInt().value % rhs.asInt().value
-            LESS_THAN -> lhs.asInt().value < rhs.asInt().value
-            LESS_OR_EQUAL -> lhs.asInt().value <= rhs.asInt().value
-            GREATER_THAN -> lhs.asInt().value > rhs.asInt().value
-            GREATER_OR_EQUAL -> lhs.asInt().value >= rhs.asInt().value
+            SUBTRACT -> {
+                requireBothInt(lhs, rhs, "subtract")
+                lhs.asInt().value - rhs.asInt().value
+            }
+            MULTIPLY -> {
+                requireBothInt(lhs, rhs, "multiply")
+                lhs.asInt().value * rhs.asInt().value
+            }
+            DIVIDE -> {
+                requireBothInt(lhs, rhs, "divide")
+                val right = rhs.asInt().value
+                if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
+                lhs.asInt().value / right
+            }
+            REMAINDER -> {
+                requireBothInt(lhs, rhs, "remainder")
+                val right = rhs.asInt().value
+                if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
+                lhs.asInt().value % right
+            }
+            LESS_THAN -> {
+                requireBothInt(lhs, rhs, "less-than")
+                lhs.asInt().value < rhs.asInt().value
+            }
+            LESS_OR_EQUAL -> {
+                requireBothInt(lhs, rhs, "less-or-equal")
+                lhs.asInt().value <= rhs.asInt().value
+            }
+            GREATER_THAN -> {
+                requireBothInt(lhs, rhs, "greater-than")
+                lhs.asInt().value > rhs.asInt().value
+            }
+            GREATER_OR_EQUAL -> {
+                requireBothInt(lhs, rhs, "greater-or-equal")
+                lhs.asInt().value >= rhs.asInt().value
+            }
             EQUAL -> {
                 if (lhs.isInt() && rhs.isInt()) {
                     lhs.asInt().value == rhs.asInt().value
@@ -295,6 +328,9 @@ class Interpreter(
             val formalParams = definition.args
             val body = definition.body
 
+            if (actualParams.size != formalParams.size) {
+                throw KoyLangRuntimeException("Function ${expression.name} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+            }
             val values = actualParams.map { interpret(it) }
 
             // Called variable environment should be separated from Caller
@@ -361,11 +397,13 @@ class Interpreter(
             val body = method.body
             val actualParams = expression.args
             val formalParams = method.args
+            if (actualParams.size != formalParams.size) {
+                throw KoyLangRuntimeException("Method ${expression.method} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+            }
             val values = actualParams.map { interpret(it) }
 
             val backup = variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)
-            // TODO check parameter number and type before loop
             for ((i, formalParam) in formalParams.withIndex()) {
                 variableEnvironment.bindings[formalParam] = values[i]
             }
