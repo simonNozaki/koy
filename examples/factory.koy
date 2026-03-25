@@ -1,0 +1,30 @@
+fn partial (x) {
+  val f = |y| {
+    x + y;
+  };
+  println(f(5));
+}
+
+mutable val age_value = 0;
+val Age = |v| {
+  age_value = v;
+  {
+    value: v,
+    get_old: || {
+      Age(v + 1);
+    }
+  };
+};
+
+
+fn main () {
+  val koy = "Koy!";
+  {
+    val greeter = {
+      greet: || {
+        "Hello, " + koy;
+      }
+    };
+    println(greeter.greet());
+  }
+}
