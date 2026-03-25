@@ -43,6 +43,11 @@ class Interpreter(
 
     private var requireDebugLog = false
 
+    private fun requireBothInt(lhs: Value, rhs: Value, op: String) {
+        if (lhs.isInt() && rhs.isInt()) return
+        throw KoyLangRuntimeException("$lhs and $rhs must be integers on $op operation")
+    }
+
     private fun getBinaryOpsResult(binaryExpression: BinaryExpression): Value {
         val lhs = interpret(binaryExpression.lhs)
         val rhs = interpret(binaryExpression.rhs)
@@ -58,35 +63,35 @@ class Interpreter(
                 }
             }
             SUBTRACT -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on subtract operation")
+                requireBothInt(lhs, rhs, "subtract")
                 lhs.asInt().value - rhs.asInt().value
             }
             MULTIPLY -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on multiply operation")
+                requireBothInt(lhs, rhs, "multiply")
                 lhs.asInt().value * rhs.asInt().value
             }
             DIVIDE -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on divide operation")
+                requireBothInt(lhs, rhs, "divide")
                 lhs.asInt().value / rhs.asInt().value
             }
             REMAINDER -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on remainder operation")
+                requireBothInt(lhs, rhs, "remainder")
                 lhs.asInt().value % rhs.asInt().value
             }
             LESS_THAN -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on less-than comparison")
+                requireBothInt(lhs, rhs, "less-than")
                 lhs.asInt().value < rhs.asInt().value
             }
             LESS_OR_EQUAL -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on less-or-equal comparison")
+                requireBothInt(lhs, rhs, "less-or-equal")
                 lhs.asInt().value <= rhs.asInt().value
             }
             GREATER_THAN -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on greater-than comparison")
+                requireBothInt(lhs, rhs, "greater-than")
                 lhs.asInt().value > rhs.asInt().value
             }
             GREATER_OR_EQUAL -> {
-                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on greater-or-equal comparison")
+                requireBothInt(lhs, rhs, "greater-or-equal")
                 lhs.asInt().value >= rhs.asInt().value
             }
             EQUAL -> {
