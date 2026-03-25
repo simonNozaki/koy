@@ -57,14 +57,38 @@ class Interpreter(
                     throw KoyLangRuntimeException("$lhs and $rhs is not compatible on add operation")
                 }
             }
-            SUBTRACT -> lhs.asInt().value - rhs.asInt().value
-            MULTIPLY -> lhs.asInt().value * rhs.asInt().value
-            DIVIDE -> lhs.asInt().value / rhs.asInt().value
-            REMAINDER -> lhs.asInt().value % rhs.asInt().value
-            LESS_THAN -> lhs.asInt().value < rhs.asInt().value
-            LESS_OR_EQUAL -> lhs.asInt().value <= rhs.asInt().value
-            GREATER_THAN -> lhs.asInt().value > rhs.asInt().value
-            GREATER_OR_EQUAL -> lhs.asInt().value >= rhs.asInt().value
+            SUBTRACT -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on subtract operation")
+                lhs.asInt().value - rhs.asInt().value
+            }
+            MULTIPLY -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on multiply operation")
+                lhs.asInt().value * rhs.asInt().value
+            }
+            DIVIDE -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on divide operation")
+                lhs.asInt().value / rhs.asInt().value
+            }
+            REMAINDER -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on remainder operation")
+                lhs.asInt().value % rhs.asInt().value
+            }
+            LESS_THAN -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on less-than comparison")
+                lhs.asInt().value < rhs.asInt().value
+            }
+            LESS_OR_EQUAL -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on less-or-equal comparison")
+                lhs.asInt().value <= rhs.asInt().value
+            }
+            GREATER_THAN -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on greater-than comparison")
+                lhs.asInt().value > rhs.asInt().value
+            }
+            GREATER_OR_EQUAL -> {
+                if (!lhs.isInt() || !rhs.isInt()) throw KoyLangRuntimeException("$lhs and $rhs must be integers on greater-or-equal comparison")
+                lhs.asInt().value >= rhs.asInt().value
+            }
             EQUAL -> {
                 if (lhs.isInt() && rhs.isInt()) {
                     lhs.asInt().value == rhs.asInt().value
@@ -296,6 +320,9 @@ class Interpreter(
             val body = definition.body
 
             val values = actualParams.map { interpret(it) }
+            if (actualParams.size != formalParams.size) {
+                throw KoyLangRuntimeException("Function ${expression.name} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+            }
 
             // Called variable environment should be separated from Caller
             val backup = this.variableEnvironment
@@ -362,10 +389,12 @@ class Interpreter(
             val actualParams = expression.args
             val formalParams = method.args
             val values = actualParams.map { interpret(it) }
+            if (actualParams.size != formalParams.size) {
+                throw KoyLangRuntimeException("Method ${expression.method} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+            }
 
             val backup = variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)
-            // TODO check parameter number and type before loop
             for ((i, formalParam) in formalParams.withIndex()) {
                 variableEnvironment.bindings[formalParam] = values[i]
             }
