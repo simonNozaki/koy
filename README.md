@@ -5,6 +5,47 @@ Toys(from [web+db vol.125](https://gihyo.jp/magazine/wdpress/archive/2021/vol125
 
 Original implementation is here: https://github.com/kmizu/toys
 
+# Getting Started
+
+## Prerequisites
+
+| Tool | Version |
+|---|---|
+| JDK | 21 or later |
+| Gradle | Not required — use the included Gradle Wrapper (`gradlew`) |
+
+## Build
+
+```bash
+./gradlew jar
+```
+
+This generates `build/libs/koy.jar`.
+
+## Run
+
+```bash
+java -jar build/libs/koy.jar -f <filename>.koy
+```
+
+Sample programs are available in the `examples/` directory.
+
+```bash
+java -jar build/libs/koy.jar -f examples/hello.koy
+```
+
+Add the `-d` flag to enable debug logging (prints the AST).
+
+```bash
+java -jar build/libs/koy.jar -f examples/hello.koy -d
+```
+
+## Test
+
+```bash
+./gradlew test
+```
+
 # Language Specs
 ## Literals
 - `Int` : `0`
