@@ -15,7 +15,7 @@ data class FunctionEnvironment(
      * Set variable to environment as `val`
      */
     fun setAsVal(definition: FunctionDefinition) {
-        throwIfDefinitionExists(valFunctions, definition.name)
+        throwIfDefinitionExists(definition.name)
         valFunctions[definition.name] = definition
     }
 
@@ -23,13 +23,13 @@ data class FunctionEnvironment(
      * Set variable to environment as `mutable val`
      */
     fun setMutableVal(definition: FunctionDefinition) {
-        throwIfDefinitionExists(mutableFunctions, definition.name)
+        throwIfDefinitionExists(definition.name)
         mutableFunctions[definition.name] = definition
     }
 
-    private fun throwIfDefinitionExists(environment: Map<String, FunctionDefinition>, name: String) {
-        if (environment.containsKey(name)) {
-            throw KoyLangRuntimeException("Declaration [ ${name} ] is already existed, so can not declare again.")
+    private fun throwIfDefinitionExists(name: String) {
+        if (mutableFunctions.containsKey(name) || valFunctions.containsKey(name)) {
+            throw KoyLangRuntimeException("Declaration [ $name ] is already existed, so can not declare again.")
         }
     }
 

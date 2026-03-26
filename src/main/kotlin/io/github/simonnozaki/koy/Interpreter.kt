@@ -11,7 +11,7 @@ import io.github.simonnozaki.koy.UnaryOperator.DECREMENT
 // TODO builtin functions
 class Interpreter(
     private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(),
-    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), null),
+    private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), mutableMapOf(), null),
     private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment()
 ) {
     /**
@@ -35,7 +35,7 @@ class Interpreter(
     /**
      * Return all variables and nodes of syntax tree from environment.
      */
-    fun getVariables() = variableEnvironment.bindings.toMap()
+    fun getVariables() = variableEnvironment.mutableVals.toMap()
 
     fun withDebug() = apply {
         this.requireDebugLog = true
@@ -337,7 +337,7 @@ class Interpreter(
             val backup = this.variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)
             for ((i, formalParam) in formalParams.withIndex()) {
-                variableEnvironment.bindings[formalParam] = values[i]
+                variableEnvironment.mutableVals[formalParam] = values[i]
             }
 
             val result = interpret(body)
@@ -364,7 +364,7 @@ class Interpreter(
             val backup = this.variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)
             for ((i, formalParam) in formalParams.withIndex()) {
-                variableEnvironment.bindings[formalParam] = values[i]
+                variableEnvironment.mutableVals[formalParam] = values[i]
             }
 
             val result = interpret(body)
@@ -405,7 +405,7 @@ class Interpreter(
             val backup = variableEnvironment
             variableEnvironment = newEnvironment(variableEnvironment)
             for ((i, formalParam) in formalParams.withIndex()) {
-                variableEnvironment.bindings[formalParam] = values[i]
+                variableEnvironment.mutableVals[formalParam] = values[i]
             }
             val result = interpret(body)
             variableEnvironment = backup
@@ -414,7 +414,7 @@ class Interpreter(
         throw KoyLangRuntimeException("Expression $expression can not be parsed.")
     }
 
-    private fun newEnvironment(next: VariableEnvironment?): VariableEnvironment = VariableEnvironment(mutableMapOf(), next)
+    private fun newEnvironment(next: VariableEnvironment?): VariableEnvironment = VariableEnvironment(mutableMapOf(), mutableMapOf(), next)
 
     /**
      * Execute `main` function. Throw runtime exception if a program has no `main` function.
