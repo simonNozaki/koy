@@ -1,128 +1,121 @@
 package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class FunctionParserSpecs {
-    @Test
-    fun `can define and call function`() {
-        val interpreter = Interpreter()
-        val source = """
-            fn add(x, y) {
-              x + y;
-            }
-            fn main() {
-              add(1, 2);
-            }
+
+    private fun run(source: String): Value = Interpreter().callMain(
+        Parsers.program().parse(Input.of(source)).result
+    )
+
+    // --- Positional function calls ---
+
+    @Nested
+    inner class `when calling functions with positional arguments` {
+
+        @Test
+        fun `should define and call function`() {
+            val source = """
+                fn add(x, y) {
+                  x + y;
+                }
+                fn main() {
+                  add(1, 2);
+                }
             """
-        val program = Parsers.program()
-            .parse(Input.of(source))
-            .result
-        val result = interpreter.callMain(program)
+            assertEquals(3, run(source).asInt().value)
+        }
 
-        assertEquals(3, result.asInt().value)
-    }
+        @Test
+        fun `should print and return variable`() {
+            val interpreter = Interpreter()
+            val source = """
+                val x = 10;
 
-    @Test
-    fun `should print variable`() {
-        val interpreter = Interpreter()
-        val source = """
-            val x = 10;
-            
-            fn print(v) {
-              println(v);
-            }
-            
-            fn main() {
-              print(x + 2);
-            }
+                fn print(v) {
+                  println(v);
+                }
+
+                fn main() {
+                  print(x + 2);
+                }
             """
-        val program = Parsers.program().parse(Input.of(source)).result
-        println(interpreter.getFunctions())
-        println(program)
+            val result = interpreter.callMain(Parsers.program().parse(Input.of(source)).result)
+            assertEquals(12, result.asInt().value)
+            assertEquals(10, interpreter.getValue("x")?.asInt()?.value)
+        }
 
-        val result = interpreter.callMain(program)
+        @Test
+        fun `should reference n-starting parameter in function body`() {
+            val source = """
+                fn greet(name) {
+                  name;
+                }
 
-        assertEquals(12, result.asInt().value)
-        assertEquals(10, interpreter.getValue("x")?.asInt()?.value)
-    }
-
-    @Test
-    fun `can call labeled function call`() {
-        val source = """
-            fn power(v) {
-              v * v;
-            }
-            
-            fn main() {
-              power[v=5];
-            }
+                fn main() {
+                  greet("world");
+                }
             """
-        val program = Parsers.program().parse(Input.of(source)).result
-        val result = Interpreter().callMain(program)
+            assertEquals("world", run(source).asString().value)
+        }
 
-        assertEquals(25, result.asInt().value)
-    }
+        @Test
+        fun `should access object properties and call method`() {
+            val source = """
+                val koy = {
+                  greet: |msg| {
+                    "Hej, " + msg;
+                  },
+                  paradigm: "object-functional",
+                  influencedBy: ["Kotlin", "Scala", "Clojure"]
+                };
 
-    @Test
-    fun `should print compound greet`() {
-        val source = """
-            fn greet(msg) {
-              "Hello " + msg;
-            }
-            
-            fn main() {
-              greet[msg="Koy"];
-            }
-            """
-        val program = Parsers.program().parse(Input.of(source)).result
-        val result = Interpreter().callMain(program)
+                fn main() {
+                  println(koy);
 
-        assertEquals("Hello Koy", result.asString().value)
-    }
-
-
-    @Test
-    fun `can reference n-starting parameter in function body`() {
-        val source = """
-            fn greet(name) {
-              name;
-            }
-
-            fn main() {
-              greet("world");
-            }
-            """
-        val program = Parsers.program().parse(Input.of(source)).result
-        val result = Interpreter().callMain(program)
-
-        assertEquals("world", result.asString().value)
-    }
-
-    @Test
-    fun `can access props in object declaration`() {
-        val interpreter = Interpreter()
-        val source = """
-            val koy = {
-              greet: |msg| {
-                "Hej, " + msg;
-              },
-              paradigm: "object-functional",
-              influencedBy: ["Kotlin", "Scala", "Clojure"]
-            };
-            
-            fn main() {
-              println(koy);
-            
-              val message = koy.greet("Koy!");
-              println(message);
-              message;
-            }
+                  val message = koy.greet("Koy!");
+                  println(message);
+                  message;
+                }
             """.trimIndent()
-        val program = Parsers.program().parse(Input.of(source)).result
-        val result = interpreter.callMain(program)
+            assertEquals("Hej, Koy!", run(source).asString().value)
+        }
+    }
 
-        assertEquals("Hej, Koy!", result.asString().value)
+    // --- Labeled function calls ---
+
+    @Nested
+    inner class `when calling functions with labeled arguments` {
+
+        @Test
+        fun `should call labeled function with integer parameter`() {
+            val source = """
+                fn power(v) {
+                  v * v;
+                }
+
+                fn main() {
+                  power[v=5];
+                }
+            """
+            assertEquals(25, run(source).asInt().value)
+        }
+
+        @Test
+        fun `should call labeled function with string parameter`() {
+            val source = """
+                fn greet(msg) {
+                  "Hello " + msg;
+                }
+
+                fn main() {
+                  greet[msg="Koy"];
+                }
+            """
+            assertEquals("Hello Koy", run(source).asString().value)
+        }
     }
 }
