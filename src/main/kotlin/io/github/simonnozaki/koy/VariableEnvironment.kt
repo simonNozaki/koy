@@ -1,7 +1,7 @@
 package io.github.simonnozaki.koy
 
 /**
- * Environment that has function definitions in runtime
+ * Environment that has variable definitions in runtime
  */
 data class VariableEnvironment(
     val bindings: MutableMap<String, Value>,
