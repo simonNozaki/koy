@@ -80,7 +80,7 @@ object Parsers {
             D_QUOTE.map { str(v) }
         }
     }.bind { v -> SPACINGS.map { v } }
-    private val nil: Parser<Char, Nil> = NIL.map { Nil }.bind { v -> SPACINGS.map { v } }
+    private val nil: Parser<Char, Nil> = NIL.map { Nil }.bind { v -> SPACINGS.map { v } }.attempt()
 
     /**
      * # Array Literal
@@ -416,7 +416,7 @@ object Parsers {
         val or: Parser<Char, BinaryOperator<Expression>> = LOGICAL_OR.attempt().map { BinaryOperator { l, r -> logicalOr(l, r) } }
 
         return addictive().chainl1(
-            lt.or(ltEq).or(gt).or(gtEq).or(eqeq).or(ne).or(and).or(or)
+            ltEq.or(lt).or(gtEq).or(gt).or(eqeq).or(ne).or(and).or(or)
         )
     }
 

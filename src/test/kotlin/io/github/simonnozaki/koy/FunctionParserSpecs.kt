@@ -84,6 +84,23 @@ class FunctionParserSpecs {
 
 
     @Test
+    fun `can reference n-starting parameter in function body`() {
+        val source = """
+            fn greet(name) {
+              name;
+            }
+
+            fn main() {
+              greet("world");
+            }
+            """
+        val program = Parsers.program().parse(Input.of(source)).result
+        val result = Interpreter().callMain(program)
+
+        assertEquals("world", result.asString().value)
+    }
+
+    @Test
     fun `can access props in object declaration`() {
         val interpreter = Interpreter()
         val source = """
