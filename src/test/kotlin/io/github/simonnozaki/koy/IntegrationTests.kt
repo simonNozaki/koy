@@ -18,9 +18,11 @@ class IntegrationTests {
         return Interpreter().callMain(program)
     }
 
+    /**
+     * Variable declarations and arithmetic are correctly evaluated via the parser.
+     */
     @Test
     fun `can evaluate variable declarations and arithmetic`() {
-        // Variable declarations and arithmetic are correctly evaluated via the parser
         val source = """
             val x = 10;
             val y = 20;
@@ -33,9 +35,11 @@ class IntegrationTests {
         assertEquals(30, result.asInt().value)
     }
 
+    /**
+     * Function definition and invocation are correctly evaluated via the parser.
+     */
     @Test
     fun `can call user-defined function`() {
-        // Function definition and invocation are correctly evaluated via the parser
         val source = """
             fn add(x, y) {
               x + y;
@@ -49,9 +53,11 @@ class IntegrationTests {
         assertEquals(30, result.asInt().value)
     }
 
+    /**
+     * Recursive function (factorial) is correctly evaluated via the parser.
+     */
     @Test
     fun `can evaluate recursive function`() {
-        // Recursive function (factorial) is correctly evaluated via the parser
         val source = """
             fn factorial(v) {
               if (v < 2) {
@@ -69,9 +75,11 @@ class IntegrationTests {
         assertEquals(120, result.asInt().value)
     }
 
+    /**
+     * Aggregation using while loop and mutable variables is correctly evaluated via the parser.
+     */
     @Test
     fun `can accumulate with while loop`() {
-        // Aggregation using while loop and mutable variables is correctly evaluated via the parser
         val source = """
             fn main() {
               mutable val i = 1;
@@ -89,9 +97,11 @@ class IntegrationTests {
         assertEquals(55, result.asInt().value)
     }
 
+    /**
+     * Object literals and method calls are correctly evaluated via the parser.
+     */
     @Test
     fun `can call method on object`() {
-        // Object literals and method calls are correctly evaluated via the parser
         val source = """
             fn main() {
               val greeter = {
@@ -107,9 +117,11 @@ class IntegrationTests {
         assertEquals("Hello, Koy", result.asString().value)
     }
 
+    /**
+     * Iteration using for-in is correctly evaluated via the parser.
+     */
     @Test
     fun `can iterate with for-in`() {
-        // Iteration using for-in is correctly evaluated via the parser
         val source = """
             fn main() {
               mutable val acc = 0;
