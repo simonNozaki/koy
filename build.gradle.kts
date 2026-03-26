@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     kotlin("jvm") version "2.3.20"
     id ("com.gradleup.shadow") version "8.3.6"
+    jacoco
 }
 
 group = "io.github.simonnozaki"
@@ -41,6 +42,15 @@ tasks.withType(Jar::class.java) {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }
 
 kotlin {
