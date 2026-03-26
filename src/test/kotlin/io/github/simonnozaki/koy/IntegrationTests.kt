@@ -20,7 +20,7 @@ class IntegrationTests {
 
     @Test
     fun `can evaluate variable declarations and arithmetic`() {
-        // 変数宣言と四則演算がパーサー経由で正しく評価される
+        // Variable declarations and arithmetic are correctly evaluated via the parser
         val source = """
             val x = 10;
             val y = 20;
@@ -35,7 +35,7 @@ class IntegrationTests {
 
     @Test
     fun `can call user-defined function`() {
-        // 関数定義と呼び出しがパーサー経由で正しく評価される
+        // Function definition and invocation are correctly evaluated via the parser
         val source = """
             fn add(x, y) {
               x + y;
@@ -51,7 +51,7 @@ class IntegrationTests {
 
     @Test
     fun `can evaluate recursive function`() {
-        // 再帰関数（階乗）がパーサー経由で正しく評価される
+        // Recursive function (factorial) is correctly evaluated via the parser
         val source = """
             fn factorial(v) {
               if (v < 2) {
@@ -71,7 +71,7 @@ class IntegrationTests {
 
     @Test
     fun `can accumulate with while loop`() {
-        // while ループとミュータブル変数を組み合わせた集計がパーサー経由で正しく評価される
+        // Aggregation using while loop and mutable variables is correctly evaluated via the parser
         val source = """
             fn main() {
               mutable val i = 1;
@@ -91,7 +91,7 @@ class IntegrationTests {
 
     @Test
     fun `can call method on object`() {
-        // オブジェクトリテラルとメソッド呼び出しがパーサー経由で正しく評価される
+        // Object literals and method calls are correctly evaluated via the parser
         val source = """
             fn main() {
               val greeter = {
@@ -109,7 +109,7 @@ class IntegrationTests {
 
     @Test
     fun `can iterate with for-in`() {
-        // for-in によるイテレーションがパーサー経由で正しく評価される
+        // Iteration using for-in is correctly evaluated via the parser
         val source = """
             fn main() {
               mutable val acc = 0;
