@@ -2,42 +2,43 @@ package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 
+/**
+ * Environment that has function definitions in runtime
+ */
 data class FunctionEnvironment(
     // TODO consider renaming to letFunctions
-    private val bindings: MutableList<FunctionDefinition> = mutableListOf(),
-    private val valFunctions: MutableList<FunctionDefinition> = mutableListOf()
+    private val mutableFunctions: MutableMap<String, FunctionDefinition> = mutableMapOf(),
+    private val valFunctions: MutableMap<String, FunctionDefinition> = mutableMapOf()
 ) {
 
     /**
      * Set variable to environment as `val`
      */
     fun setAsVal(definition: FunctionDefinition) {
-        valFunctions.add(definition)
+        throwIfDefinitionExists(valFunctions, definition.name)
+        valFunctions[definition.name] = definition
     }
 
     /**
      * Set variable to environment as `mutable val`
      */
     fun setMutableVal(definition: FunctionDefinition) {
-        if (hasDeclaration(definition.name)) {
-            throw KoyLangRuntimeException("Declaration [ ${definition.name} ] is already existed, so can not declare again.")
-        }
-        bindings.add(definition)
+        throwIfDefinitionExists(mutableFunctions, definition.name)
+        mutableFunctions[definition.name] = definition
     }
 
-    /**
-     * Return true if the identifier of `key` already exists.
-     */
-    private fun hasDeclaration(key: String): Boolean {
-        return bindings.count { it.name == key } == 1 || valFunctions.count { it.name == key } == 1
+    private fun throwIfDefinitionExists(environment: Map<String, FunctionDefinition>, name: String) {
+        if (environment.containsKey(name)) {
+            throw KoyLangRuntimeException("Declaration [ ${name} ] is already existed, so can not declare again.")
+        }
     }
 
     /**
      * Return function definition from `mutable val` or `val` declaration.
      */
     fun getDefinition(key: String): FunctionDefinition {
-        val def = bindings.firstOrNull { it.name == key }
-        val valDef = valFunctions.firstOrNull { it.name == key }
+        val def = mutableFunctions[key]
+        val valDef = valFunctions[key]
         if (valDef != null) {
             return valDef
         }
