@@ -413,4 +413,18 @@ class ExpressionLinesParserSpecs {
 
         interpreter.getValue("b")?.asBool()?.value?.let { Assertions.assertTrue(it) }
     }
+
+    @Test
+    fun `should accumulate with lte in while condition`() {
+        val interpreter = Interpreter()
+        val source = """
+            mutable val i = 0;
+            while (i <= 10) {
+              i = i + 1;
+            }
+            """.trimIndent()
+        Parsers.lines().parse(Input.of(source)).result.forEach { interpreter.interpret(it) }
+
+        assertEquals(11, interpreter.getValue("i")?.asInt()?.value)
+    }
 }
