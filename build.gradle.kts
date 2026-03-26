@@ -19,6 +19,7 @@ repositories {
 }
 
 dependencies {
+    implementation(kotlin("stdlib"))
     implementation("org.javafp:parsecj:0.6")
     testImplementation(kotlin("test"))
 }
@@ -48,8 +49,8 @@ tasks.test {
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
-        xml.required = true
-        html.required = true
+        xml.required.set(false)
+        html.required.set(true)
     }
 }
 
