@@ -2,8 +2,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.3.20"
-    id ("com.gradleup.shadow") version "8.3.6"
+    id("com.gradleup.shadow") version "8.3.6"
     jacoco
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
 }
 
 group = "io.github.simonnozaki"
@@ -30,13 +31,14 @@ tasks.withType(Jar::class.java) {
     manifest {
         attributes["Main-Class"] = "io.github.simonnozaki.koy.KoyLangKt"
     }
-    val archives = configurations.compileClasspath.get().map {
-        if (it.isDirectory) {
-            it
-        } else {
-            zipTree(it)
+    val archives =
+        configurations.compileClasspath.get().map {
+            if (it.isDirectory) {
+                it
+            } else {
+                zipTree(it)
+            }
         }
-    }
     from(archives)
     archiveFileName.set("koy.jar")
 }
