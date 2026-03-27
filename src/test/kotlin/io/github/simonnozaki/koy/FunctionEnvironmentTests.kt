@@ -6,14 +6,12 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 
 class FunctionEnvironmentTests {
-
     private fun definition(name: String) = TopLevel.FunctionDefinition(name, listOf(), Block(integer(0)))
 
     // --- getDefinition ---
 
     @Nested
     inner class `when getting a function definition` {
-
         @Test
         fun `should return val function by name`() {
             val env = FunctionEnvironment()
@@ -40,7 +38,6 @@ class FunctionEnvironmentTests {
 
     @Nested
     inner class `when setting a mutable val function` {
-
         @Test
         fun `should throw on duplicate name`() {
             val env = FunctionEnvironment()

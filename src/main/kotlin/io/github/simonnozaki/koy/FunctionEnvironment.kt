@@ -8,9 +8,8 @@ import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
 data class FunctionEnvironment(
     // TODO consider renaming to letFunctions
     private val mutableFunctions: MutableMap<String, FunctionDefinition> = mutableMapOf(),
-    private val valFunctions: MutableMap<String, FunctionDefinition> = mutableMapOf()
+    private val valFunctions: MutableMap<String, FunctionDefinition> = mutableMapOf(),
 ) {
-
     /**
      * Set variable to environment as `val`
      */

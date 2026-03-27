@@ -7,14 +7,12 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class ObjectRuntimeEnvironmentTests {
-
     private fun props(vararg pairs: Pair<String, Value>) = mapOf(*pairs)
 
     // --- findBindings ---
 
     @Nested
     inner class `when finding object bindings` {
-
         @Test
         fun `should return bindings for mutable val object`() {
             val env = ObjectRuntimeEnvironment()
@@ -40,7 +38,6 @@ class ObjectRuntimeEnvironmentTests {
 
     @Nested
     inner class `when setting a duplicate object key` {
-
         @Test
         fun `should throw on setVal with duplicate key`() {
             val env = ObjectRuntimeEnvironment()

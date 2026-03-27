@@ -9,7 +9,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ExpressionLinesParserSpecs {
-
     private fun run(source: String): Interpreter {
         val interpreter = Interpreter()
         Parsers.lines().parse(Input.of(source.trimIndent())).result.forEach { interpreter.interpret(it) }
@@ -20,28 +19,33 @@ class ExpressionLinesParserSpecs {
 
     @Nested
     inner class `when parsing control flow statements` {
-
         @Test
         fun `should increment variable in while loop`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val i = 0;
                 while(i < 10) {
                   i = i + 1;
                 }
-            """)
+            """,
+                )
             assertEquals(10, interpreter.getValue("i")?.asInt()?.value)
         }
 
         @Test
         fun `should execute else clause when condition is false`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val x = 5;
                 if (x < 5) {
                   x = 1;
                 } else {
                   x = 0;
                 }
-            """)
+            """,
+                )
             assertEquals(0, interpreter.getValue("x")?.asInt()?.value)
         }
 
@@ -60,24 +64,30 @@ class ExpressionLinesParserSpecs {
 
         @Test
         fun `should accumulate with lte in while condition`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val i = 0;
                 while (i <= 10) {
                   i = i + 1;
                 }
-            """)
+            """,
+                )
             assertEquals(11, interpreter.getValue("i")?.asInt()?.value)
         }
 
         @Test
         fun `should increment in while using prefix increment`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val i = 0;
                 while (i < 10) {
                   ++i;
                 }
                 println(i);
-            """)
+            """,
+                )
             assertEquals(10, interpreter.getValue("i")?.asInt()?.value)
         }
     }
@@ -86,67 +96,84 @@ class ExpressionLinesParserSpecs {
 
     @Nested
     inner class `when parsing variable declarations` {
-
         @Test
         fun `should parse true and false literals`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val t = true;
                 mutable val a = false;
-            """)
+            """,
+                )
             assertEquals(true, interpreter.getValue("t")?.asBool()?.value)
             assertEquals(false, interpreter.getValue("a")?.asBool()?.value)
         }
 
         @Test
         fun `should assign mutable variable`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val n = 0;
                 n = 1;
-            """)
+            """,
+                )
             assertEquals(1, interpreter.getValue("n")?.asInt()?.value)
         }
 
         @Test
         fun `should throw on reassignment to val`() {
-            val ex = assertThrows<KoyLangRuntimeException> {
-                run("""
+            val ex =
+                assertThrows<KoyLangRuntimeException> {
+                    run(
+                        """
                     val n = 0;
                     n = 1;
-                """)
-            }
+                """,
+                    )
+                }
             assertEquals("Declaration [ n ] is declared as val, so consider declaring it as mutable val declaration.", ex.message)
         }
 
         @Test
         fun `should throw on redeclaration of val`() {
-            val ex = assertThrows<KoyLangRuntimeException> {
-                run("""
+            val ex =
+                assertThrows<KoyLangRuntimeException> {
+                    run(
+                        """
                     val n = 0;
                     val n = 1;
-                """)
-            }
+                """,
+                    )
+                }
             assertEquals("Declaration [ n ] is already existed, so can not declare again.", ex.message)
         }
 
         @Test
         fun `should throw on redeclaration of mutable val`() {
-            val ex = assertThrows<KoyLangRuntimeException> {
-                run("""
+            val ex =
+                assertThrows<KoyLangRuntimeException> {
+                    run(
+                        """
                     mutable val n = 0;
                     mutable val n = 1;
-                """)
-            }
+                """,
+                    )
+                }
             assertEquals("Declaration [ n ] is already existed, so can not declare again.", ex.message)
         }
 
         @Test
         fun `should throw on mutable val redeclared as val`() {
-            val ex = assertThrows<KoyLangRuntimeException> {
-                run("""
+            val ex =
+                assertThrows<KoyLangRuntimeException> {
+                    run(
+                        """
                     mutable val n = 0;
                     val n = 1;
-                """)
-            }
+                """,
+                    )
+                }
             assertEquals("Declaration [ n ] is already existed, so can not declare again.", ex.message)
         }
     }
@@ -155,7 +182,6 @@ class ExpressionLinesParserSpecs {
 
     @Nested
     inner class `when parsing literals and expressions` {
-
         @Test
         fun `should evaluate block expression`() {
             val expr = Parsers.blockExpression().parse(Input.of("{\n  true;\n}".trimIndent())).result
@@ -172,37 +198,47 @@ class ExpressionLinesParserSpecs {
 
         @Test
         fun `should assign and evaluate set literal`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 val domains = %{
                   "ezweb.ne.jp",
                   "gmail.com",
                   "yahoo.jp"
                 };
                 println(domains);
-            """)
+            """,
+                )
             val set = interpreter.getValue("domains")?.asSet()?.value
             assertEquals(3, set?.size)
-            set?.containsAll(listOf(
-                Value.String("ezweb.ne.jp"),
-                Value.String("gmail.com"),
-                Value.String("yahoo.jp")
-            ))?.let { Assertions.assertTrue(it) }
+            set?.containsAll(
+                listOf(
+                    Value.String("ezweb.ne.jp"),
+                    Value.String("gmail.com"),
+                    Value.String("yahoo.jp"),
+                ),
+            )?.let { Assertions.assertTrue(it) }
         }
 
         @Test
         fun `should assign and call object literal`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 val o = {
                   id: 1,
                   title: "Get ready to meeting"
                 };
-            """)
+            """,
+                )
             assertEquals(1, interpreter.getValue("o")?.asObject()?.value?.get("id")?.asInt()?.value)
         }
 
         @Test
         fun `should emit and call function literal from function`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 val Age = |v| {
                   mutable val _v = v;
                   {
@@ -214,7 +250,8 @@ class ExpressionLinesParserSpecs {
                   };
                 };
                 val now = Age(21);
-            """)
+            """,
+                )
             val now = interpreter.getValue("now") ?: throw KoyLangRuntimeException("")
             Assertions.assertTrue(now.isObject())
             assertEquals(21, now.asObject().value["value"]?.asInt()?.value)
@@ -222,23 +259,29 @@ class ExpressionLinesParserSpecs {
 
         @Test
         fun `should assign function literal to variable`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 val l = |x| {
                   "Hello, " + x;
                 };
-            """)
+            """,
+                )
             assertEquals("l", interpreter.getFunctions().getDefinition("l").name)
             assertEquals("x", interpreter.getFunctions().getDefinition("l").args[0])
         }
 
         @Test
         fun `should increment and decrement`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val n = 1;
                 val n2 = ++n;
                 mutable val m = 1;
                 val m2 = --m;
-            """)
+            """,
+                )
             assertEquals(2, interpreter.getValue("n2")?.asInt()?.value)
             assertEquals(0, interpreter.getValue("m2")?.asInt()?.value)
         }
@@ -248,10 +291,11 @@ class ExpressionLinesParserSpecs {
 
     @Nested
     inner class `when parsing collection operations` {
-
         @Test
         fun `should get element in array by index`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val i = 0;
                 mutable val j = 0;
                 val odd = [1, 3, 5];
@@ -260,18 +304,22 @@ class ExpressionLinesParserSpecs {
                   j = odd->i;
                   ++i;
                 }
-            """)
+            """,
+                )
             assertEquals(5, interpreter.getValue("j")?.asInt()?.value)
         }
 
         @Test
         fun `should conjoin element with array`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 val odd = [1, 3, 5];
                 val odd2 = odd<-7;
                 println(odd);
                 println(odd2);
-            """)
+            """,
+                )
             val odd = interpreter.getValue("odd")?.asArray()
             val odd2 = interpreter.getValue("odd2")?.asArray()
             odd?.let { assertEquals(3, it.items.size) }
@@ -283,12 +331,15 @@ class ExpressionLinesParserSpecs {
 
         @Test
         fun `should conjoin element with set`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 val odd = %{1, 3, 5};
                 val odd2 = odd<-7;
                 println(odd);
                 println(odd2);
-            """)
+            """,
+                )
             val odd = interpreter.getValue("odd")?.asSet()
             val odd2 = interpreter.getValue("odd2")?.asSet()
             odd?.let { assertEquals(3, it.value.size) }
@@ -300,21 +351,27 @@ class ExpressionLinesParserSpecs {
 
         @Test
         fun `should return nil for missing element in array`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 mutable val j = 0;
                 val odd = [1, 3, 5];
                 val b = odd->3 == nil;
-            """)
+            """,
+                )
             interpreter.getValue("b")?.asBool()?.value?.let { Assertions.assertTrue(it) }
         }
 
         @Test
         fun `should return true for equal arrays`() {
-            val interpreter = run("""
+            val interpreter =
+                run(
+                    """
                 val l = [0, 1, 2];
                 val m = [0, 1, 2];
                 val r = l == m;
-            """)
+            """,
+                )
             val r = interpreter.getValue("r")?.asBool()?.value ?: throw KoyLangRuntimeException("")
             Assertions.assertTrue(r)
         }
@@ -322,11 +379,13 @@ class ExpressionLinesParserSpecs {
         @Test
         fun `should throw on equality check with incompatible collection types`() {
             assertThrows<KoyLangRuntimeException> {
-                run("""
+                run(
+                    """
                     val l = [0, 1, 2];
                     val m = %{0, 1, 2};
                     val r = l == m;
-                """)
+                """,
+                )
             }
         }
     }

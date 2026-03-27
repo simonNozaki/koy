@@ -1,6 +1,8 @@
 package io.github.simonnozaki.koy
 
 import io.github.simonnozaki.koy.Expression.*
+import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
+import io.github.simonnozaki.koy.TopLevel.ValDefinition
 import org.javafp.data.Unit
 import org.javafp.parsecj.Combinators
 import org.javafp.parsecj.Parser
@@ -9,8 +11,6 @@ import org.javafp.parsecj.Text.regex
 import org.javafp.parsecj.Text.string
 import org.javafp.parsecj.Text.wspace
 import java.util.function.BinaryOperator
-import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
-import io.github.simonnozaki.koy.TopLevel.ValDefinition
 
 // TODO regex
 // TODO `return` for block expression
@@ -72,14 +72,16 @@ object Parsers {
     private val IDENT: Parser<Char, String> = regex(PATTERN_IDENTIFIER).bind { name -> SPACINGS.map { name } }
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v -> SPACINGS.map { v } }
-    private val bool: Parser<Char, BoolLiteral> = TRUE.map { bool(true) }
-        .or(FALSE.map { bool(false) })
-        .bind { v -> SPACINGS.map { v } }
-    private val string: Parser<Char, StringLiteral> = D_QUOTE.bind {
-        regex(PATTERN_STRING_LITERAL).bind { v ->
-            D_QUOTE.map { str(v) }
-        }
-    }.bind { v -> SPACINGS.map { v } }
+    private val bool: Parser<Char, BoolLiteral> =
+        TRUE.map { bool(true) }
+            .or(FALSE.map { bool(false) })
+            .bind { v -> SPACINGS.map { v } }
+    private val string: Parser<Char, StringLiteral> =
+        D_QUOTE.bind {
+            regex(PATTERN_STRING_LITERAL).bind { v ->
+                D_QUOTE.map { str(v) }
+            }
+        }.bind { v -> SPACINGS.map { v } }
     private val nil: Parser<Char, Nil> = NIL.map { Nil }.bind { v -> SPACINGS.map { v } }.attempt()
 
     /**
@@ -111,12 +113,13 @@ object Parsers {
         }
     }
 
+    // TODO check prop names duplication
+
     /**
      * ```
      * objectLiteral <- '{' (identifier ':' expression (,identifier ':' expression*)? '}'
      * ```
      */
-    // TODO check prop names duplication
     private fun objectLiteral(): Parser<Char, ObjectLiteral> {
         return IDENT.bind { propName ->
             COLON.then(expression()).map { e -> propName to e }
@@ -159,12 +162,14 @@ object Parsers {
      * ```
      */
     private fun unary(): Parser<Char, Expression> {
-        val increment: Parser<Char, Expression> = INCREMENT.bind {
-            IDENT.map { name -> UnaryExpression(UnaryOperator.INCREMENT, Identifier(name)) }
-        }
-        val decrement: Parser<Char, Expression> = DECREMENT.bind {
-            IDENT.map { name -> UnaryExpression(UnaryOperator.DECREMENT, Identifier(name)) }
-        }
+        val increment: Parser<Char, Expression> =
+            INCREMENT.bind {
+                IDENT.map { name -> UnaryExpression(UnaryOperator.INCREMENT, Identifier(name)) }
+            }
+        val decrement: Parser<Char, Expression> =
+            DECREMENT.bind {
+                IDENT.map { name -> UnaryExpression(UnaryOperator.DECREMENT, Identifier(name)) }
+            }
         return increment.or(decrement)
     }
 
@@ -416,7 +421,7 @@ object Parsers {
         val or: Parser<Char, BinaryOperator<Expression>> = LOGICAL_OR.attempt().map { BinaryOperator { l, r -> logicalOr(l, r) } }
 
         return addictive().chainl1(
-            ltEq.or(lt).or(gtEq).or(gt).or(eqeq).or(ne).or(and).or(or)
+            ltEq.or(lt).or(gtEq).or(gt).or(eqeq).or(ne).or(and).or(or),
         )
     }
 
@@ -427,12 +432,14 @@ object Parsers {
      * ```
      */
     private fun addictive(): Parser<Char, Expression> {
-        val addition: Parser<Char, BinaryOperator<Expression>> = PLUS.map {
-            BinaryOperator { left: Expression, right: Expression -> add(left, right) }
-        }
-        val subtract: Parser<Char, BinaryOperator<Expression>> = MINUS.map {
-            BinaryOperator { left: Expression, right: Expression -> subtract(left, right) }
-        }
+        val addition: Parser<Char, BinaryOperator<Expression>> =
+            PLUS.map {
+                BinaryOperator { left: Expression, right: Expression -> add(left, right) }
+            }
+        val subtract: Parser<Char, BinaryOperator<Expression>> =
+            MINUS.map {
+                BinaryOperator { left: Expression, right: Expression -> subtract(left, right) }
+            }
         return multitive().chainl1(addition.or(subtract))
     }
 
@@ -445,30 +452,36 @@ object Parsers {
      * ```
      */
     private fun multitive(): Parser<Char, Expression> {
-        val multiply: Parser<Char, BinaryOperator<Expression>> = ASTER.map {
-            BinaryOperator { l, r -> multiply(l, r) }
-        }
-        val divide: Parser<Char, BinaryOperator<Expression>> = SLUSH.map {
-            BinaryOperator { l, r -> divide(l, r) }
-        }
-        val remain: Parser<Char, BinaryOperator<Expression>> = PERCENT.map {
-            BinaryOperator { l, r -> remain(l, r) }
-        }
-        val methodCall: Parser<Char, BinaryOperator<Expression>> = DOT.attempt().map {
-            BinaryOperator { l, r ->
-                if (r is FunctionCall) {
-                    MethodCall(l, Identifier(r.name), r.args)
-                } else {
-                    MethodCall(l, r, listOf())
+        val multiply: Parser<Char, BinaryOperator<Expression>> =
+            ASTER.map {
+                BinaryOperator { l, r -> multiply(l, r) }
+            }
+        val divide: Parser<Char, BinaryOperator<Expression>> =
+            SLUSH.map {
+                BinaryOperator { l, r -> divide(l, r) }
+            }
+        val remain: Parser<Char, BinaryOperator<Expression>> =
+            PERCENT.map {
+                BinaryOperator { l, r -> remain(l, r) }
+            }
+        val methodCall: Parser<Char, BinaryOperator<Expression>> =
+            DOT.attempt().map {
+                BinaryOperator { l, r ->
+                    if (r is FunctionCall) {
+                        MethodCall(l, Identifier(r.name), r.args)
+                    } else {
+                        MethodCall(l, r, listOf())
+                    }
                 }
             }
-        }
-        val indexAccess: Parser<Char, BinaryOperator<Expression>> = ARROW.attempt().map {
-            BinaryOperator { l, r -> IndexAccess(l, r) }
-        }
-        val pushElement: Parser<Char, BinaryOperator<Expression>> = BACK_ARROW.attempt().map {
-            BinaryOperator { l, r -> PushElement(l, r) }
-        }
+        val indexAccess: Parser<Char, BinaryOperator<Expression>> =
+            ARROW.attempt().map {
+                BinaryOperator { l, r -> IndexAccess(l, r) }
+            }
+        val pushElement: Parser<Char, BinaryOperator<Expression>> =
+            BACK_ARROW.attempt().map {
+                BinaryOperator { l, r -> PushElement(l, r) }
+            }
 
         return primary().chainl1(multiply.or(divide).or(remain).or(methodCall).or(indexAccess).or(pushElement))
     }
@@ -495,15 +508,15 @@ object Parsers {
         }
             .or(integer)
             .or(string)
-            .or(functionCall())    // identifier '(' identifier ')'
-            .or(labeledCall())     // identifier '[' identifier '=' expression ']'
+            .or(functionCall()) // identifier '(' identifier ')'
+            .or(labeledCall()) // identifier '[' identifier '=' expression ']'
             .or(nil)
             .or(bool)
-            .or(identifier())      // identifier
-            .or(unary())           // ++identifier / --identifier
-            .or(setLiteral())      // '%' '(' (expression(, expression)) ')'
-            .or(arrayLiteral())    // '[' (expression) ']'
-            .or(objectLiteral())   // '{' identifier ':' expression '}'
+            .or(identifier()) // identifier
+            .or(unary()) // ++identifier / --identifier
+            .or(setLiteral()) // '%' '(' (expression(, expression)) ')'
+            .or(arrayLiteral()) // '[' (expression) ']'
+            .or(objectLiteral()) // '{' identifier ':' expression '}'
             .or(functionLiteral()) // '|' identifier '|' blockExpression
     }
 
@@ -547,14 +560,14 @@ object Parsers {
                                     lessThan(identifier(name), to),
                                     Block(
                                         it,
-                                        assign(name, add(identifier(name), integer(1)))
-                                    )
-                                )
+                                        assign(name, add(identifier(name), integer(1))),
+                                    ),
+                                ),
                             )
                         }
                     }
                 }
-            }
+            },
         )
     }
 

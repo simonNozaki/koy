@@ -20,10 +20,10 @@ fun main(args: Array<String>) {
         } else {
             System.err.println(
                 """
-            |Usage: java -jar koy.jar -f <fileName>.koy (-d)*
-            | -d             : enable debug logg printing ast
-            |-f <fileName>   : read a program from <fileName> and execute it
-                """.trimIndent()
+                |Usage: java -jar koy.jar -f <fileName>.koy (-d)*
+                | -d             : enable debug logg printing ast
+                |-f <fileName>   : read a program from <fileName> and execute it
+                """.trimIndent(),
             )
         }
     }

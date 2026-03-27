@@ -3,16 +3,16 @@ package io.github.simonnozaki.koy
 import io.github.simonnozaki.koy.Expression.*
 import io.github.simonnozaki.koy.Operator.*
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
-import io.github.simonnozaki.koy.TopLevel.ValDefinition
 import io.github.simonnozaki.koy.TopLevel.MutableValDefinition
-import io.github.simonnozaki.koy.UnaryOperator.INCREMENT
+import io.github.simonnozaki.koy.TopLevel.ValDefinition
 import io.github.simonnozaki.koy.UnaryOperator.DECREMENT
+import io.github.simonnozaki.koy.UnaryOperator.INCREMENT
 
 // TODO builtin functions
 class Interpreter(
     private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(),
     private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), mutableMapOf(), null),
-    private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment()
+    private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment(),
 ) {
     /**
      * Return the value from interpreter variable environment
@@ -37,13 +37,18 @@ class Interpreter(
      */
     fun getVariables() = variableEnvironment.mutableVals.toMap()
 
-    fun withDebug() = apply {
-        this.requireDebugLog = true
-    }
+    fun withDebug() =
+        apply {
+            this.requireDebugLog = true
+        }
 
     private var requireDebugLog = false
 
-    private fun requireBothInt(lhs: Value, rhs: Value, op: String) {
+    private fun requireBothInt(
+        lhs: Value,
+        rhs: Value,
+        op: String,
+    ) {
         if (lhs.isInt() && rhs.isInt()) return
         throw KoyLangRuntimeException("$lhs and $rhs must be integers on $op operation")
     }
@@ -52,105 +57,106 @@ class Interpreter(
         val lhs = interpret(binaryExpression.lhs)
         val rhs = interpret(binaryExpression.rhs)
 
-        val result = when (binaryExpression.operator) {
-            ADD -> {
-                if (lhs.isString() && rhs.isString()) {
-                    lhs.asString().value + rhs.asString().value
-                } else if (lhs.isInt() && rhs.isInt()) {
-                    lhs.asInt().value + rhs.asInt().value
-                } else {
-                    throw KoyLangRuntimeException("$lhs and $rhs is not compatible on add operation")
+        val result =
+            when (binaryExpression.operator) {
+                ADD -> {
+                    if (lhs.isString() && rhs.isString()) {
+                        lhs.asString().value + rhs.asString().value
+                    } else if (lhs.isInt() && rhs.isInt()) {
+                        lhs.asInt().value + rhs.asInt().value
+                    } else {
+                        throw KoyLangRuntimeException("$lhs and $rhs is not compatible on add operation")
+                    }
+                }
+                SUBTRACT -> {
+                    requireBothInt(lhs, rhs, "subtract")
+                    lhs.asInt().value - rhs.asInt().value
+                }
+                MULTIPLY -> {
+                    requireBothInt(lhs, rhs, "multiply")
+                    lhs.asInt().value * rhs.asInt().value
+                }
+                DIVIDE -> {
+                    requireBothInt(lhs, rhs, "divide")
+                    val right = rhs.asInt().value
+                    if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
+                    lhs.asInt().value / right
+                }
+                REMAINDER -> {
+                    requireBothInt(lhs, rhs, "remainder")
+                    val right = rhs.asInt().value
+                    if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
+                    lhs.asInt().value % right
+                }
+                LESS_THAN -> {
+                    requireBothInt(lhs, rhs, "less-than")
+                    lhs.asInt().value < rhs.asInt().value
+                }
+                LESS_OR_EQUAL -> {
+                    requireBothInt(lhs, rhs, "less-or-equal")
+                    lhs.asInt().value <= rhs.asInt().value
+                }
+                GREATER_THAN -> {
+                    requireBothInt(lhs, rhs, "greater-than")
+                    lhs.asInt().value > rhs.asInt().value
+                }
+                GREATER_OR_EQUAL -> {
+                    requireBothInt(lhs, rhs, "greater-or-equal")
+                    lhs.asInt().value >= rhs.asInt().value
+                }
+                EQUAL -> {
+                    if (lhs.isInt() && rhs.isInt()) {
+                        lhs.asInt().value == rhs.asInt().value
+                    } else if (lhs.isBool() && rhs.isBool()) {
+                        lhs.asBool().value == rhs.asBool().value
+                    } else if (lhs.isString() && rhs.isString()) {
+                        lhs.asString().value == rhs.asString().value
+                    } else if (lhs.isSet() && rhs.isSet()) {
+                        lhs.asSet().value == rhs.asSet().value
+                    } else if (lhs.isArray() && rhs.isArray()) {
+                        lhs.asArray().items == rhs.asArray().items
+                    } else if (lhs.isNil() && rhs.isNil()) {
+                        true
+                    } else if (lhs.isNil() || rhs.isNil()) {
+                        false
+                    } else {
+                        throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
+                    }
+                }
+                NOT_EQUAL -> {
+                    if (lhs.isInt() && rhs.isInt()) {
+                        lhs.asInt().value != rhs.asInt().value
+                    } else if (lhs.isBool() && rhs.isBool()) {
+                        lhs.asBool().value != rhs.asBool().value
+                    } else if (lhs.isString() && rhs.isString()) {
+                        lhs.asString().value != rhs.asString().value
+                    } else if (lhs.isSet() && rhs.isSet()) {
+                        lhs.asSet().value != rhs.asSet().value
+                    } else if (lhs.isArray() && rhs.isArray()) {
+                        lhs.asArray().items != rhs.asArray().items
+                    } else if (lhs.isNil() && rhs.isNil()) {
+                        false
+                    } else if (lhs.isNil() || rhs.isNil()) {
+                        true
+                    } else {
+                        throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
+                    }
+                }
+                LOGICAL_AND -> {
+                    if (lhs.isBool() && rhs.isBool()) {
+                        lhs.asBool().value && rhs.asBool().value
+                    } else {
+                        throw KoyLangRuntimeException("Both $lhs and $rhs should be boolean.")
+                    }
+                }
+                LOGICAL_OR -> {
+                    if (lhs.isBool() && rhs.isBool()) {
+                        lhs.asBool().value || rhs.asBool().value
+                    } else {
+                        throw KoyLangRuntimeException("Both $lhs and $rhs should be boolean.")
+                    }
                 }
             }
-            SUBTRACT -> {
-                requireBothInt(lhs, rhs, "subtract")
-                lhs.asInt().value - rhs.asInt().value
-            }
-            MULTIPLY -> {
-                requireBothInt(lhs, rhs, "multiply")
-                lhs.asInt().value * rhs.asInt().value
-            }
-            DIVIDE -> {
-                requireBothInt(lhs, rhs, "divide")
-                val right = rhs.asInt().value
-                if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
-                lhs.asInt().value / right
-            }
-            REMAINDER -> {
-                requireBothInt(lhs, rhs, "remainder")
-                val right = rhs.asInt().value
-                if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
-                lhs.asInt().value % right
-            }
-            LESS_THAN -> {
-                requireBothInt(lhs, rhs, "less-than")
-                lhs.asInt().value < rhs.asInt().value
-            }
-            LESS_OR_EQUAL -> {
-                requireBothInt(lhs, rhs, "less-or-equal")
-                lhs.asInt().value <= rhs.asInt().value
-            }
-            GREATER_THAN -> {
-                requireBothInt(lhs, rhs, "greater-than")
-                lhs.asInt().value > rhs.asInt().value
-            }
-            GREATER_OR_EQUAL -> {
-                requireBothInt(lhs, rhs, "greater-or-equal")
-                lhs.asInt().value >= rhs.asInt().value
-            }
-            EQUAL -> {
-                if (lhs.isInt() && rhs.isInt()) {
-                    lhs.asInt().value == rhs.asInt().value
-                } else if (lhs.isBool() && rhs.isBool()) {
-                    lhs.asBool().value == rhs.asBool().value
-                } else if (lhs.isString() && rhs.isString()) {
-                    lhs.asString().value == rhs.asString().value
-                } else if (lhs.isSet() && rhs.isSet()) {
-                    lhs.asSet().value == rhs.asSet().value
-                } else if (lhs.isArray() && rhs.isArray()) {
-                    lhs.asArray().items == rhs.asArray().items
-                } else if (lhs.isNil() && rhs.isNil()) {
-                    true
-                } else if (lhs.isNil() || rhs.isNil()) {
-                    false
-                } else {
-                    throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
-                }
-            }
-            NOT_EQUAL -> {
-                if (lhs.isInt() && rhs.isInt()) {
-                    lhs.asInt().value != rhs.asInt().value
-                } else if (lhs.isBool() && rhs.isBool()) {
-                    lhs.asBool().value != rhs.asBool().value
-                } else if (lhs.isString() && rhs.isString()) {
-                    lhs.asString().value != rhs.asString().value
-                } else if (lhs.isSet() && rhs.isSet()) {
-                    lhs.asSet().value != rhs.asSet().value
-                } else if (lhs.isArray() && rhs.isArray()) {
-                    lhs.asArray().items != rhs.asArray().items
-                } else if (lhs.isNil() && rhs.isNil()) {
-                    false
-                } else if (lhs.isNil() || rhs.isNil()) {
-                    true
-                } else {
-                    throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
-                }
-            }
-            LOGICAL_AND -> {
-                if (lhs.isBool() && rhs.isBool()) {
-                    lhs.asBool().value && rhs.asBool().value
-                } else {
-                    throw KoyLangRuntimeException("Both $lhs and $rhs should be boolean.")
-                }
-            }
-            LOGICAL_OR -> {
-                if (lhs.isBool() && rhs.isBool()) {
-                    lhs.asBool().value || rhs.asBool().value
-                } else {
-                    throw KoyLangRuntimeException("Both $lhs and $rhs should be boolean.")
-                }
-            }
-        }
         return Value.of(result)
     }
 
@@ -169,16 +175,18 @@ class Interpreter(
                 throw KoyLangRuntimeException("Unary operation needs variable.")
             }
 
-            val identifier = try {
-                interpret(expression.value).asInt().value
-            } catch (e: Exception) {
-                throw KoyLangRuntimeException("Unary operation should apply with integer variables, error => $e")
-            }
+            val identifier =
+                try {
+                    interpret(expression.value).asInt().value
+                } catch (e: Exception) {
+                    throw KoyLangRuntimeException("Unary operation should apply with integer variables, error => $e")
+                }
 
-            val v = when (expression.operator) {
-                INCREMENT -> identifier + 1
-                DECREMENT -> identifier - 1
-            }
+            val v =
+                when (expression.operator) {
+                    INCREMENT -> identifier + 1
+                    DECREMENT -> identifier - 1
+                }
             interpret(assign(expression.value.name, IntegerLiteral(v)))
             return Value.of(v)
         }
@@ -254,7 +262,9 @@ class Interpreter(
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is not defined.")
             }
             if (variableEnvironment.isNotReAssignable(expression.name)) {
-                throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration.")
+                throw KoyLangRuntimeException(
+                    "Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration.",
+                )
             }
             when (value) {
                 is Value.Object -> maybeObject?.set(expression.name, value.value)
@@ -329,7 +339,9 @@ class Interpreter(
             val body = definition.body
 
             if (actualParams.size != formalParams.size) {
-                throw KoyLangRuntimeException("Function ${expression.name} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+                throw KoyLangRuntimeException(
+                    "Function ${expression.name} expects ${formalParams.size} argument(s) but got ${actualParams.size}",
+                )
             }
             val values = actualParams.map { interpret(it) }
 
@@ -355,7 +367,11 @@ class Interpreter(
             val actualParams = mutableListOf<Expression>()
             // Get actual parameters from labeled parameters map, so throw exception on failed to get value from mappings
             for (param in formalParams) {
-                val e = labelMappings[param] ?: throw KoyLangRuntimeException("Parameter ${labelMappings[param]} is not defined in ${expression.name}")
+                val e =
+                    labelMappings[param]
+                        ?: throw KoyLangRuntimeException(
+                            "Parameter ${labelMappings[param]} is not defined in ${expression.name}",
+                        )
                 actualParams.add(e)
             }
             val values = actualParams.map { interpret(it) }
@@ -372,25 +388,29 @@ class Interpreter(
             return result
         }
         if (expression is MethodCall) {
-            val obj: Map<String, Value> = when (expression.objectExpression) {
-                is ObjectLiteral -> {
-                    // On calling method from object literal, create map
-                    expression.objectExpression.properties.entries.associate { it.key to interpret(it.value) }
+            val obj: Map<String, Value> =
+                when (expression.objectExpression) {
+                    is ObjectLiteral -> {
+                        // On calling method from object literal, create map
+                        expression.objectExpression.properties.entries.associate { it.key to interpret(it.value) }
+                    }
+                    is Identifier -> {
+                        // On calling method from object variable, get property name and value map from runtime
+                        objectRuntimeEnvironment.findBindings(expression.objectExpression.name)
+                            ?.get(expression.objectExpression.name)
+                            ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
+                    }
+                    else -> return interpret(expression.objectExpression)
                 }
-                is Identifier -> {
-                    // On calling method from object variable, get property name and value map from runtime
-                    objectRuntimeEnvironment.findBindings(expression.objectExpression.name)
-                        ?.get(expression.objectExpression.name)
-                        ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
-                }
-                else -> return interpret(expression.objectExpression)
-            }
             if (expression.method !is Identifier) {
                 throw KoyLangRuntimeException("Method [ ${expression.method} ] should be identifier.")
             }
 
-            val method = obj[expression.method.name]
-                ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] does not have a method or property [ ${expression.method} ].")
+            val method =
+                obj[expression.method.name]
+                    ?: throw KoyLangRuntimeException(
+                        "Object [ ${expression.objectExpression} ] does not have a method or property [ ${expression.method} ].",
+                    )
             if (method !is Value.Function) {
                 return method
             }
@@ -398,7 +418,9 @@ class Interpreter(
             val actualParams = expression.args
             val formalParams = method.args
             if (actualParams.size != formalParams.size) {
-                throw KoyLangRuntimeException("Method ${expression.method} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+                throw KoyLangRuntimeException(
+                    "Method ${expression.method} expects ${formalParams.size} argument(s) but got ${actualParams.size}",
+                )
             }
             val values = actualParams.map { interpret(it) }
 

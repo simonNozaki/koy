@@ -33,46 +33,46 @@ sealed class Value {
     fun isNil() = this is Nil
 
     data class Int(
-        val value: kotlin.Int
+        val value: kotlin.Int,
     ) : Value() {
         override fun toString(): kotlin.String = value.toString()
     }
 
     data class Array(
         val items: List<Value>,
-        val size: kotlin.Int
+        val size: kotlin.Int,
     ) : Value() {
         override fun toString(): kotlin.String = items.map { it.toString() }.toString()
     }
 
     data class Bool(
-        val value: Boolean
+        val value: Boolean,
     ) : Value() {
         override fun toString(): kotlin.String = value.toString()
     }
 
     data class String(
-        val value: kotlin.String
+        val value: kotlin.String,
     ) : Value() {
         override fun toString(): kotlin.String = value
     }
 
     data class Object(
-        val value: Map<kotlin.String, Value>
+        val value: Map<kotlin.String, Value>,
     ) : Value() {
         override fun toString(): kotlin.String = value.toString()
     }
 
     data class Function(
         val args: List<kotlin.String>,
-        val body: Expression.BlockExpression
+        val body: Expression.BlockExpression,
     ) : Value() {
         override fun toString(): kotlin.String = "Function[params=$args]"
     }
 
     data class Set(
         val value: kotlin.collections.Set<Value>,
-        val size: kotlin.Int
+        val size: kotlin.Int,
     ) : Value() {
         override fun toString(): kotlin.String = value.toString()
     }
@@ -98,6 +98,9 @@ sealed class Value {
 
         fun ofObject(v: Map<kotlin.String, Value>) = Object(v)
 
-        fun ofFunction(args: List<kotlin.String>, body: Expression.BlockExpression) = Function(args, body)
+        fun ofFunction(
+            args: List<kotlin.String>,
+            body: Expression.BlockExpression,
+        ) = Function(args, body)
     }
 }

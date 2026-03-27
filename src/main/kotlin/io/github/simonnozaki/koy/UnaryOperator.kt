@@ -1,8 +1,8 @@
 package io.github.simonnozaki.koy
 
 enum class UnaryOperator(
-    val value: String
+    val value: String,
 ) {
     INCREMENT("++"),
-    DECREMENT("--")
+    DECREMENT("--"),
 }

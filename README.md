@@ -46,6 +46,29 @@ java -jar build/libs/koy.jar -f examples/hello.koy -d
 ./gradlew test
 ```
 
+## Lint
+
+This project uses [ktlint](https://pinterest.github.io/ktlint/) for Kotlin code style enforcement.
+
+```bash
+# Check for violations (exits non-zero if any are found)
+./gradlew ktlintCheck
+
+# Auto-fix violations where possible
+./gradlew ktlintFormat
+```
+
+### Baseline
+
+Existing violations are recorded in `config/ktlint/baseline.xml` and are excluded from `ktlintCheck`.
+When adding new code, please follow the ktlint rules.
+
+To regenerate the baseline (e.g. after fixing existing violations):
+
+```bash
+./gradlew ktlintGenerateBaseline
+```
+
 # Language Specs
 ## Literals
 - `Int` : `0`

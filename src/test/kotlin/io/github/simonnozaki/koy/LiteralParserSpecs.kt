@@ -1,7 +1,6 @@
 package io.github.simonnozaki.koy
 
 import org.javafp.parsecj.input.Input
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -9,7 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 class LiteralParserSpecs {
-
     private fun getValue(source: String): Value {
         val interpreter = Interpreter()
         val expression = Parsers.expression().parse(Input.of(source)).result
@@ -20,7 +18,6 @@ class LiteralParserSpecs {
 
     @Nested
     inner class `when parsing primitive literals` {
-
         @Test
         fun `should return 0 for remainder of 10 and 5`() {
             assertEquals(0, getValue("10 % 5").asInt().value)
@@ -51,7 +48,6 @@ class LiteralParserSpecs {
 
     @Nested
     inner class `when parsing collection literals` {
-
         @Test
         fun `should define object literal with correct properties`() {
             val result = getValue("{a : 1, b: \"1\"}")
@@ -61,11 +57,12 @@ class LiteralParserSpecs {
 
         @Test
         fun `should define function literal with parameter`() {
-            val source = """
+            val source =
+                """
                 |x| {
                   "Hello, " + x;
                 }
-            """.trimIndent()
+                """.trimIndent()
             val expression = Parsers.functionLiteral().parse(Input.of(source)).result
             val result = Interpreter().interpret(expression)
             when (result) {
@@ -91,8 +88,8 @@ class LiteralParserSpecs {
             assertEquals(3, result.asArray().size)
             assertTrue(
                 result.asArray().items.containsAll(
-                    setOf(Value.of("kotlin"), Value.of("koy"), Value.of("java"))
-                )
+                    setOf(Value.of("kotlin"), Value.of("koy"), Value.of("java")),
+                ),
             )
         }
     }
@@ -101,7 +98,6 @@ class LiteralParserSpecs {
 
     @Nested
     inner class `when parsing expressions` {
-
         @Test
         fun `should return false for logical-and of true and false`() {
             assertFalse(getValue("true and false").asBool().value)

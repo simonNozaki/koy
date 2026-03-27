@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class VariableEnvironmentTests {
-
     @Nested
     inner class `when adding duplicates` {
         val env = VariableEnvironment(mutableMapOf(), mutableMapOf(), null)

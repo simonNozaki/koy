@@ -6,16 +6,15 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class FunctionParserSpecs {
-
-    private fun run(source: String): Value = Interpreter().callMain(
-        Parsers.program().parse(Input.of(source)).result
-    )
+    private fun run(source: String): Value =
+        Interpreter().callMain(
+            Parsers.program().parse(Input.of(source)).result,
+        )
 
     // --- Positional function calls ---
 
     @Nested
     inner class `when calling functions with positional arguments` {
-
         @Test
         fun `should define and call function`() {
             val source = """
@@ -64,7 +63,8 @@ class FunctionParserSpecs {
 
         @Test
         fun `should access object properties and call method`() {
-            val source = """
+            val source =
+                """
                 val koy = {
                   greet: |msg| {
                     "Hej, " + msg;
@@ -80,7 +80,7 @@ class FunctionParserSpecs {
                   println(message);
                   message;
                 }
-            """.trimIndent()
+                """.trimIndent()
             assertEquals("Hej, Koy!", run(source).asString().value)
         }
     }
@@ -89,7 +89,6 @@ class FunctionParserSpecs {
 
     @Nested
     inner class `when calling functions with labeled arguments` {
-
         @Test
         fun `should call labeled function with integer parameter`() {
             val source = """
