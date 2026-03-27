@@ -44,11 +44,7 @@ class Interpreter(
 
     private var requireDebugLog = false
 
-    private fun requireBothInt(
-        lhs: Value,
-        rhs: Value,
-        op: String,
-    ) {
+    private fun requireBothInt(lhs: Value, rhs: Value, op: String) {
         if (lhs.isInt() && rhs.isInt()) return
         throw KoyLangRuntimeException("$lhs and $rhs must be integers on $op operation")
     }
@@ -160,14 +156,13 @@ class Interpreter(
         return Value.of(result)
     }
 
-    fun interpret(expression: Expression): Value {
-        return if (requireDebugLog) {
+    fun interpret(expression: Expression): Value =
+        if (requireDebugLog) {
             println("|- $expression")
             execute(expression)
         } else {
             execute(expression)
         }
-    }
 
     private fun execute(expression: Expression): Value {
         if (expression is UnaryExpression) {
@@ -392,11 +387,13 @@ class Interpreter(
                 when (expression.objectExpression) {
                     is ObjectLiteral -> {
                         // On calling method from object literal, create map
-                        expression.objectExpression.properties.entries.associate { it.key to interpret(it.value) }
+                        expression.objectExpression.properties.entries
+                            .associate { it.key to interpret(it.value) }
                     }
                     is Identifier -> {
                         // On calling method from object variable, get property name and value map from runtime
-                        objectRuntimeEnvironment.findBindings(expression.objectExpression.name)
+                        objectRuntimeEnvironment
+                            .findBindings(expression.objectExpression.name)
                             ?.get(expression.objectExpression.name)
                             ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
                     }
@@ -453,7 +450,8 @@ class Interpreter(
                             functionEnvironment.setAsVal(def)
                         }
                         is ObjectLiteral -> {
-                            val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
+                            val o = topLevel.expression.properties.entries
+                                .associate { it.key to interpret(it.value) }
                             objectRuntimeEnvironment.setVal(topLevel.name, o)
                         }
                         else -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
@@ -466,7 +464,8 @@ class Interpreter(
                             functionEnvironment.setMutableVal(def)
                         }
                         is ObjectLiteral -> {
-                            val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
+                            val o = topLevel.expression.properties.entries
+                                .associate { it.key to interpret(it.value) }
                             objectRuntimeEnvironment.setMutableVal(topLevel.name, o)
                         }
                         else -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))

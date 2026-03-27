@@ -25,9 +25,11 @@ class InterpreterTests {
         @Test
         fun `should evaluate nested add and multiply`() {
             val result =
-                Interpreter().interpret(
-                    add(multiply(IntegerLiteral(3), IntegerLiteral(5)), IntegerLiteral(10)),
-                ).asInt().value
+                Interpreter()
+                    .interpret(
+                        add(multiply(IntegerLiteral(3), IntegerLiteral(5)), IntegerLiteral(10)),
+                    ).asInt()
+                    .value
             assertEquals(25, result)
         }
 
@@ -273,7 +275,14 @@ class InterpreterTests {
         fun `should define array literal with correct size`() {
             val interpreter = Interpreter()
             interpreter.interpret(ValDeclaration("a", Array(IntegerLiteral(1), IntegerLiteral(3), IntegerLiteral(5))))
-            assertEquals(3, interpreter.getValue("a")?.asArray()?.items?.size)
+            assertEquals(
+                3,
+                interpreter
+                    .getValue("a")
+                    ?.asArray()
+                    ?.items
+                    ?.size,
+            )
         }
 
         @Test
@@ -307,9 +316,10 @@ class InterpreterTests {
         @Test
         fun `should push element to array`() {
             val result =
-                Interpreter().interpret(
-                    PushElement(Array(integer(1), integer(2)), integer(3)),
-                ).asArray()
+                Interpreter()
+                    .interpret(
+                        PushElement(Array(integer(1), integer(2)), integer(3)),
+                    ).asArray()
             assertEquals(3, result.items.size)
             assertEquals(Value.Int(3), result.items[2])
         }
@@ -317,9 +327,10 @@ class InterpreterTests {
         @Test
         fun `should push element to set`() {
             val result =
-                Interpreter().interpret(
-                    PushElement(SetLiteral(setOf(integer(1), integer(2))), integer(3)),
-                ).asSet()
+                Interpreter()
+                    .interpret(
+                        PushElement(SetLiteral(setOf(integer(1), integer(2))), integer(3)),
+                    ).asSet()
             assertEquals(3, result.value.size)
         }
 
@@ -576,7 +587,14 @@ class InterpreterTests {
         fun `should declare mutable val as object`() {
             val interpreter = Interpreter()
             interpreter.interpret(MutableValDeclaration("obj", Object(mapOf("n" to integer(10)))))
-            assertEquals(Value.Int(10), interpreter.getValue("obj")?.asObject()?.value?.get("n"))
+            assertEquals(
+                Value.Int(10),
+                interpreter
+                    .getValue("obj")
+                    ?.asObject()
+                    ?.value
+                    ?.get("n"),
+            )
         }
 
         @Test
@@ -664,7 +682,11 @@ class InterpreterTests {
     inner class `when debug mode is enabled` {
         @Test
         fun `should not change evaluation result`() {
-            val result = Interpreter().withDebug().interpret(add(integer(1), integer(2))).asInt().value
+            val result = Interpreter()
+                .withDebug()
+                .interpret(add(integer(1), integer(2)))
+                .asInt()
+                .value
             assertEquals(3, result)
         }
     }

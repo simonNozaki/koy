@@ -20,10 +20,7 @@ data class VariableEnvironment(
     /**
      * Set variable to environment as `val`
      */
-    fun setVal(
-        key: String,
-        value: Value,
-    ) {
+    fun setVal(key: String, value: Value) {
         throwIfDefinitionExists(key)
         immutablesVals[key] = value
     }
@@ -31,10 +28,7 @@ data class VariableEnvironment(
     /**
      * Set variable to environment as `mutable val`
      */
-    fun setMutableVal(
-        key: String,
-        value: Value,
-    ) {
+    fun setMutableVal(key: String, value: Value) {
         throwIfDefinitionExists(key)
         mutableVals[key] = value
     }

@@ -51,8 +51,22 @@ class LiteralParserSpecs {
         @Test
         fun `should define object literal with correct properties`() {
             val result = getValue("{a : 1, b: \"1\"}")
-            assertEquals(1, result.asObject().value["a"]?.asInt()?.value)
-            assertEquals("1", result.asObject().value["b"]?.asString()?.value)
+            assertEquals(
+                1,
+                result
+                    .asObject()
+                    .value["a"]
+                    ?.asInt()
+                    ?.value,
+            )
+            assertEquals(
+                "1",
+                result
+                    .asObject()
+                    .value["b"]
+                    ?.asString()
+                    ?.value,
+            )
         }
 
         @Test

@@ -11,7 +11,11 @@ import kotlin.test.assertTrue
 class ExpressionLinesParserSpecs {
     private fun run(source: String): Interpreter {
         val interpreter = Interpreter()
-        Parsers.lines().parse(Input.of(source.trimIndent())).result.forEach { interpreter.interpret(it) }
+        Parsers
+            .lines()
+            .parse(Input.of(source.trimIndent()))
+            .result
+            .forEach { interpreter.interpret(it) }
         return interpreter
     }
 
@@ -58,7 +62,11 @@ class ExpressionLinesParserSpecs {
                 }
             """
             val interpreter = Interpreter()
-            Parsers.lines().parse(Input.of(source.trimIndent())).result.forEach { interpreter.interpret(it) }
+            Parsers
+                .lines()
+                .parse(Input.of(source.trimIndent()))
+                .result
+                .forEach { interpreter.interpret(it) }
             assertEquals(10, interpreter.getValue("i")?.asInt()?.value)
         }
 
@@ -211,13 +219,14 @@ class ExpressionLinesParserSpecs {
                 )
             val set = interpreter.getValue("domains")?.asSet()?.value
             assertEquals(3, set?.size)
-            set?.containsAll(
-                listOf(
-                    Value.String("ezweb.ne.jp"),
-                    Value.String("gmail.com"),
-                    Value.String("yahoo.jp"),
-                ),
-            )?.let { Assertions.assertTrue(it) }
+            set
+                ?.containsAll(
+                    listOf(
+                        Value.String("ezweb.ne.jp"),
+                        Value.String("gmail.com"),
+                        Value.String("yahoo.jp"),
+                    ),
+                )?.let { Assertions.assertTrue(it) }
         }
 
         @Test
@@ -231,7 +240,16 @@ class ExpressionLinesParserSpecs {
                 };
             """,
                 )
-            assertEquals(1, interpreter.getValue("o")?.asObject()?.value?.get("id")?.asInt()?.value)
+            assertEquals(
+                1,
+                interpreter
+                    .getValue("o")
+                    ?.asObject()
+                    ?.value
+                    ?.get("id")
+                    ?.asInt()
+                    ?.value,
+            )
         }
 
         @Test
@@ -254,7 +272,14 @@ class ExpressionLinesParserSpecs {
                 )
             val now = interpreter.getValue("now") ?: throw KoyLangRuntimeException("")
             Assertions.assertTrue(now.isObject())
-            assertEquals(21, now.asObject().value["value"]?.asInt()?.value)
+            assertEquals(
+                21,
+                now
+                    .asObject()
+                    .value["value"]
+                    ?.asInt()
+                    ?.value,
+            )
         }
 
         @Test
@@ -359,7 +384,11 @@ class ExpressionLinesParserSpecs {
                 val b = odd->3 == nil;
             """,
                 )
-            interpreter.getValue("b")?.asBool()?.value?.let { Assertions.assertTrue(it) }
+            interpreter
+                .getValue("b")
+                ?.asBool()
+                ?.value
+                ?.let { Assertions.assertTrue(it) }
         }
 
         @Test

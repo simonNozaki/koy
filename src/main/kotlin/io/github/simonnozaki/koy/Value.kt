@@ -85,8 +85,8 @@ sealed class Value {
         /**
          * Factory method of sealed class `Value`.
          */
-        fun of(v: Any): Value {
-            return when (v) {
+        fun of(v: Any): Value =
+            when (v) {
                 is kotlin.Int -> Int(v)
                 is List<*> -> Array(v as List<Value>, v.size)
                 is Boolean -> Bool(v)
@@ -94,13 +94,9 @@ sealed class Value {
                 is kotlin.collections.Set<*> -> Set(v as kotlin.collections.Set<Value>, v.size)
                 else -> throw RuntimeException("Type of $v can not convert")
             }
-        }
 
         fun ofObject(v: Map<kotlin.String, Value>) = Object(v)
 
-        fun ofFunction(
-            args: List<kotlin.String>,
-            body: Expression.BlockExpression,
-        ) = Function(args, body)
+        fun ofFunction(args: List<kotlin.String>, body: Expression.BlockExpression) = Function(args, body)
     }
 }

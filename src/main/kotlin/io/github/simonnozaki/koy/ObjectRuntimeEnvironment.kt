@@ -4,20 +4,14 @@ data class ObjectRuntimeEnvironment(
     private val mutableValObjects: MutableMap<String, Map<String, Value>> = mutableMapOf(),
     private val valObjects: MutableMap<String, Map<String, Value>> = mutableMapOf(),
 ) {
-    fun setVal(
-        key: String,
-        properties: Map<String, Value>,
-    ) {
+    fun setVal(key: String, properties: Map<String, Value>) {
         if (valObjects[key] != null) {
             throw KoyLangRuntimeException("")
         }
         valObjects[key] = properties
     }
 
-    fun setMutableVal(
-        key: String,
-        properties: Map<String, Value>,
-    ) {
+    fun setMutableVal(key: String, properties: Map<String, Value>) {
         if (mutableValObjects[key] != null) {
             throw KoyLangRuntimeException("")
         }

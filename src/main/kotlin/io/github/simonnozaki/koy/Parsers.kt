@@ -73,15 +73,17 @@ object Parsers {
 
     private val integer: Parser<Char, IntegerLiteral> = intr.map { integer(it) }.bind { v -> SPACINGS.map { v } }
     private val bool: Parser<Char, BoolLiteral> =
-        TRUE.map { bool(true) }
+        TRUE
+            .map { bool(true) }
             .or(FALSE.map { bool(false) })
             .bind { v -> SPACINGS.map { v } }
     private val string: Parser<Char, StringLiteral> =
-        D_QUOTE.bind {
-            regex(PATTERN_STRING_LITERAL).bind { v ->
-                D_QUOTE.map { str(v) }
-            }
-        }.bind { v -> SPACINGS.map { v } }
+        D_QUOTE
+            .bind {
+                regex(PATTERN_STRING_LITERAL).bind { v ->
+                    D_QUOTE.map { str(v) }
+                }
+            }.bind { v -> SPACINGS.map { v } }
     private val nil: Parser<Char, Nil> = NIL.map { Nil }.bind { v -> SPACINGS.map { v } }.attempt()
 
     /**
@@ -89,13 +91,12 @@ object Parsers {
      * ## PEG
      * arrayLiteral <- '[' (expression(, expression)*)? ']'
      */
-    private fun arrayLiteral(): Parser<Char, ArrayLiteral> {
-        return LBRACKET.bind {
+    private fun arrayLiteral(): Parser<Char, ArrayLiteral> =
+        LBRACKET.bind {
             expression().sepBy(COMMA).bind { params ->
                 RBRACKET.map { ArrayLiteral(params.toList()) }
             }
         }
-    }
 
     /**
      * # Set Literal
@@ -107,11 +108,10 @@ object Parsers {
      * ```
      * ```
      */
-    fun setLiteral(): Parser<Char, SetLiteral> {
-        return PERCENT.bind {
+    fun setLiteral(): Parser<Char, SetLiteral> =
+        PERCENT.bind {
             expression().sepBy(COMMA).between(LBRACE, RBRACE).map { SetLiteral(it.toSet()) }
         }
-    }
 
     // TODO check prop names duplication
 
@@ -120,17 +120,16 @@ object Parsers {
      * objectLiteral <- '{' (identifier ':' expression (,identifier ':' expression*)? '}'
      * ```
      */
-    private fun objectLiteral(): Parser<Char, ObjectLiteral> {
-        return IDENT.bind { propName ->
-            COLON.then(expression()).map { e -> propName to e }
-        }
-            .sepBy(COMMA)
+    private fun objectLiteral(): Parser<Char, ObjectLiteral> =
+        IDENT
+            .bind { propName ->
+                COLON.then(expression()).map { e -> propName to e }
+            }.sepBy(COMMA)
             .between(LBRACE, RBRACE)
             .map {
                 val properties = it.toList().associate { p -> p.first to p.second }
                 ObjectLiteral(properties)
             }
-    }
 
     /**
      * # Function literal
@@ -146,13 +145,12 @@ object Parsers {
      * }
      * ```
      */
-    fun functionLiteral(): Parser<Char, FunctionLiteral> {
-        return IDENT.sepBy(COMMA).between(PIPE, PIPE).bind { params ->
+    fun functionLiteral(): Parser<Char, FunctionLiteral> =
+        IDENT.sepBy(COMMA).between(PIPE, PIPE).bind { params ->
             blockExpression().map { block ->
                 FunctionLiteral(params.toList(), block)
             }
         }
-    }
 
     /**
      * # Unary operation
@@ -178,13 +176,13 @@ object Parsers {
      * println <- println '(' expression ')' ';'
      * ```
      */
-    private fun println(): Parser<Char, Expression> {
-        return PRINTLN.bind {
-            expression().between(LPAREN, RPAREN).bind { param ->
-                SEMI_COLON.map { PrintLn(param) as Expression }
-            }
-        }.attempt()
-    }
+    private fun println(): Parser<Char, Expression> =
+        PRINTLN
+            .bind {
+                expression().between(LPAREN, RPAREN).bind { param ->
+                    SEMI_COLON.map { PrintLn(param) as Expression }
+                }
+            }.attempt()
 
     /**
      * 行の定義、1行とカウントされる式の単位
@@ -198,8 +196,8 @@ object Parsers {
      *   / expressionLine
      * ```
      */
-    private fun line(): Parser<Char, Expression> {
-        return println()
+    private fun line(): Parser<Char, Expression> =
+        println()
             .or(assignment())
             .or(valDeclaration())
             .or(mutableValDeclaration())
@@ -208,33 +206,31 @@ object Parsers {
             .or(ifExpression())
             .or(forInExpression())
             .or(whileExpression())
-    }
 
     /**
      * ```
      * lines <- line+;
      * ```
      */
-    fun lines(): Parser<Char, List<Expression>> {
-        return line().many1().bind { s ->
+    fun lines(): Parser<Char, List<Expression>> =
+        line().many1().bind { s ->
             Combinators.eof<Char>().map {
                 s.toList()
             }
         }
-    }
 
     /**
      * ```
      * assignment <- identifier '=' expression ';'
      * ```
      */
-    private fun assignment(): Parser<Char, Assignment> {
-        return IDENT.bind { name ->
-            EQ.then(expression()).bind { expr ->
-                SEMI_COLON.map { Assignment(name, expr) }
-            }
-        }.attempt()
-    }
+    private fun assignment(): Parser<Char, Assignment> =
+        IDENT
+            .bind { name ->
+                EQ.then(expression()).bind { expr ->
+                    SEMI_COLON.map { Assignment(name, expr) }
+                }
+            }.attempt()
 
     /**
      * # val declaration
@@ -248,13 +244,14 @@ object Parsers {
      * val f = |x, y| { x + y; };
      * ```
      */
-    private fun valDeclaration(): Parser<Char, ValDeclaration> {
-        return VAL.then(IDENT).bind { name ->
-            EQ.then(expression()).bind { expr ->
-                SEMI_COLON.map { ValDeclaration(name, expr) }
-            }
-        }.attempt()
-    }
+    private fun valDeclaration(): Parser<Char, ValDeclaration> =
+        VAL
+            .then(IDENT)
+            .bind { name ->
+                EQ.then(expression()).bind { expr ->
+                    SEMI_COLON.map { ValDeclaration(name, expr) }
+                }
+            }.attempt()
 
     /**
      * # mutable val declaration
@@ -268,13 +265,15 @@ object Parsers {
      * mutable val f = |x, y| { x + y; };
      * ```
      */
-    private fun mutableValDeclaration(): Parser<Char, MutableValDeclaration> {
-        return MUTABLE.then(VAL).then(IDENT).bind { name ->
-            EQ.then(expression()).bind { expr ->
-                SEMI_COLON.map { MutableValDeclaration(name, expr) }
-            }
-        }.attempt()
-    }
+    private fun mutableValDeclaration(): Parser<Char, MutableValDeclaration> =
+        MUTABLE
+            .then(VAL)
+            .then(IDENT)
+            .bind { name ->
+                EQ.then(expression()).bind { expr ->
+                    SEMI_COLON.map { MutableValDeclaration(name, expr) }
+                }
+            }.attempt()
 
     /**
      * `expressionLine` can accept semicolon and new line as symbol for one line.
@@ -282,9 +281,7 @@ object Parsers {
      * expressionLine <- expression ';' / '\n'
      * ```
      */
-    private fun expressionLine(): Parser<Char, Expression> {
-        return expression().bind { e -> SEMI_COLON.map { e } }.attempt()
-    }
+    private fun expressionLine(): Parser<Char, Expression> = expression().bind { e -> SEMI_COLON.map { e } }.attempt()
 
     /**
      * 関数呼び出し
@@ -293,13 +290,13 @@ object Parsers {
      * functionCall <- identifier '(' (expression (',' expression)*)? ')'
      * ```
      */
-    private fun functionCall(): Parser<Char, FunctionCall> {
-        return IDENT.bind { identifier ->
-            expression().sepBy(COMMA).between(LPAREN, RPAREN).map {
-                FunctionCall(identifier, it.toList())
-            }
-        }.attempt()
-    }
+    private fun functionCall(): Parser<Char, FunctionCall> =
+        IDENT
+            .bind { identifier ->
+                expression().sepBy(COMMA).between(LPAREN, RPAREN).map {
+                    FunctionCall(identifier, it.toList())
+                }
+            }.attempt()
 
     /**
      * ```
@@ -307,29 +304,29 @@ object Parsers {
      * labeledCall <- identifier '[' (labeledParameter(',' labeledParameter)*)? ']'
      * ```
      */
-    private fun labeledCall(): Parser<Char, LabeledCall> {
-        return IDENT.bind { name ->
-            IDENT.bind { label ->
-                EQ.then(expression()).map { param ->
-                    LabeledParameter(label, param)
-                }
-            }
-                .sepBy(COMMA)
-                .between(LBRACKET, RBRACKET)
-                .map { LabeledCall(name, it.toList()) }
-        }.attempt()
-    }
+    private fun labeledCall(): Parser<Char, LabeledCall> =
+        IDENT
+            .bind { name ->
+                IDENT
+                    .bind { label ->
+                        EQ.then(expression()).map { param ->
+                            LabeledParameter(label, param)
+                        }
+                    }.sepBy(COMMA)
+                    .between(LBRACKET, RBRACKET)
+                    .map { LabeledCall(name, it.toList()) }
+            }.attempt()
 
     /**
      * ```
      * topLevelDefinition <- globalVariableDefinition / functionDefinition
      * ```
      */
-    private fun topLevelDefinition(): Parser<Char, TopLevel> {
-        return valDefinition().map { it as TopLevel }
+    private fun topLevelDefinition(): Parser<Char, TopLevel> =
+        valDefinition()
+            .map { it as TopLevel }
             .or(mutableValDefinition().map { it as TopLevel })
             .or(functionDefinition().map { it as TopLevel })
-    }
 
     /**
      * ```
@@ -389,14 +386,13 @@ object Parsers {
      * program <- topLevelDefinition
      * ```
      */
-    fun program(): Parser<Char, Program> {
-        return SPACINGS.bind {
+    fun program(): Parser<Char, Program> =
+        SPACINGS.bind {
             topLevelDefinition()
                 .many()
                 .map { it.toList() }
                 .map { Program(it) }
         }
-    }
 
     /**
      * ```
@@ -421,7 +417,14 @@ object Parsers {
         val or: Parser<Char, BinaryOperator<Expression>> = LOGICAL_OR.attempt().map { BinaryOperator { l, r -> logicalOr(l, r) } }
 
         return addictive().chainl1(
-            ltEq.or(lt).or(gtEq).or(gt).or(eqeq).or(ne).or(and).or(or),
+            ltEq
+                .or(lt)
+                .or(gtEq)
+                .or(gt)
+                .or(eqeq)
+                .or(ne)
+                .or(and)
+                .or(or),
         )
     }
 
@@ -483,7 +486,14 @@ object Parsers {
                 BinaryOperator { l, r -> PushElement(l, r) }
             }
 
-        return primary().chainl1(multiply.or(divide).or(remain).or(methodCall).or(indexAccess).or(pushElement))
+        return primary().chainl1(
+            multiply
+                .or(divide)
+                .or(remain)
+                .or(methodCall)
+                .or(indexAccess)
+                .or(pushElement),
+        )
     }
 
     /**
@@ -501,12 +511,12 @@ object Parsers {
      * ```
      */
     private fun primary(): Parser<Char, Expression> {
-        return LPAREN.bind {
-            expression().bind { v ->
-                RPAREN.map { v }
-            }
-        }
-            .or(integer)
+        return LPAREN
+            .bind {
+                expression().bind { v ->
+                    RPAREN.map { v }
+                }
+            }.or(integer)
             .or(string)
             .or(functionCall()) // identifier '(' identifier ')'
             .or(labeledCall()) // identifier '[' identifier '=' expression ']'
@@ -525,9 +535,12 @@ object Parsers {
      * blockExpression <- '{' expression '}'
      * ```
      */
-    fun blockExpression(): Parser<Char, BlockExpression> {
-        return LBRACE.bind { line().many().bind { expressions -> RBRACE.map { BlockExpression(expressions.toList()) } } }
-    }
+    fun blockExpression(): Parser<Char, BlockExpression> =
+        LBRACE.bind {
+            line().many().bind { expressions ->
+                RBRACE.map { BlockExpression(expressions.toList()) }
+            }
+        }
 
     /**
      * ```
@@ -536,11 +549,12 @@ object Parsers {
      */
     private fun ifExpression(): Parser<Char, IfExpression> {
         val condition = IF.then(expression().between(LPAREN, RPAREN))
-        return condition.bind { c ->
-            line().bind { thenClause ->
-                ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause) }
-            }
-        }.attempt()
+        return condition
+            .bind { c ->
+                line().bind { thenClause ->
+                    ELSE.then(line()).optionalOpt().map { elseClause -> IfExpression(c, thenClause, elseClause) }
+                }
+            }.attempt()
     }
 
     /**
@@ -548,8 +562,8 @@ object Parsers {
      * forInExpression <- "for" "(" identifier "in" integer "to" integer ")" line
      * ```
      */
-    private fun forInExpression(): Parser<Char, Expression> {
-        return FOR.then(
+    private fun forInExpression(): Parser<Char, Expression> =
+        FOR.then(
             LPAREN.then(IDENT).bind { name ->
                 IN.then(expression()).bind { from ->
                     TO.then(expression()).bind { to ->
@@ -569,7 +583,6 @@ object Parsers {
                 }
             },
         )
-    }
 
     /**
      * ```
@@ -578,9 +591,10 @@ object Parsers {
      */
     private fun whileExpression(): Parser<Char, WhileExpression> {
         val condition = WHILE.then(expression().between(LPAREN, RPAREN))
-        return condition.bind { c ->
-            line().map { body -> WhileExpression(c, body) }
-        }.attempt()
+        return condition
+            .bind { c ->
+                line().map { body -> WhileExpression(c, body) }
+            }.attempt()
     }
 
     /**
@@ -588,7 +602,5 @@ object Parsers {
      * identifier <- Identifier
      * ```
      */
-    private fun identifier(): Parser<Char, Identifier> {
-        return IDENT.map { Identifier(it) }
-    }
+    private fun identifier(): Parser<Char, Identifier> = IDENT.map { Identifier(it) }
 }
