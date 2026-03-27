@@ -108,42 +108,46 @@ class ExpressionLinesParserSpecs {
 
         @Test
         fun `should throw on reassignment to val`() {
-            assertThrows<KoyLangRuntimeException>("Declaration [ n ] is already existed, so can not declare again.") {
+            val ex = assertThrows<KoyLangRuntimeException> {
                 run("""
                     val n = 0;
                     n = 1;
                 """)
             }
+            assertEquals("Declaration [ n ] is declared as val, so consider declaring it as mutable val declaration.", ex.message)
         }
 
         @Test
         fun `should throw on redeclaration of val`() {
-            assertThrows<KoyLangRuntimeException>("Declaration [ n ] is already existed, so can not declare again.") {
+            val ex = assertThrows<KoyLangRuntimeException> {
                 run("""
                     val n = 0;
                     val n = 1;
                 """)
             }
+            assertEquals("Declaration [ n ] is already existed, so can not declare again.", ex.message)
         }
 
         @Test
         fun `should throw on redeclaration of mutable val`() {
-            assertThrows<KoyLangRuntimeException>("Declaration [ n ] is already existed, so can not declare again.") {
+            val ex = assertThrows<KoyLangRuntimeException> {
                 run("""
                     mutable val n = 0;
                     mutable val n = 1;
                 """)
             }
+            assertEquals("Declaration [ n ] is already existed, so can not declare again.", ex.message)
         }
 
         @Test
         fun `should throw on mutable val redeclared as val`() {
-            assertThrows<KoyLangRuntimeException>("Declaration [ n ] is already existed, so can not declare again.") {
+            val ex = assertThrows<KoyLangRuntimeException> {
                 run("""
                     mutable val n = 0;
                     val n = 1;
                 """)
             }
+            assertEquals("Declaration [ n ] is already existed, so can not declare again.", ex.message)
         }
     }
 
