@@ -54,11 +54,13 @@ class Interpreter(
      * Return the value from interpreter variable environment
      */
     fun getValue(name: String): Value? {
-        if (variableEnvironment.findBindings(name) != null) {
-            return variableEnvironment.findBindings(name)?.get(name)
+        val variableBindings = variableEnvironment.findBindings(name)
+        if (variableBindings != null) {
+            return variableBindings[name]
         }
-        if (objectRuntimeEnvironment.findBindings(name) != null) {
-            val v = objectRuntimeEnvironment.findBindings(name)?.get(name) ?: throw KoyLangRuntimeException("Not reaching here")
+        val objectBindings = objectRuntimeEnvironment.findBindings(name)
+        if (objectBindings != null) {
+            val v = objectBindings[name] ?: throw KoyLangRuntimeException("Not reaching here")
             return Value.ofObject(v)
         }
         return null

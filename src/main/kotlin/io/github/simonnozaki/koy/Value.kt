@@ -6,7 +6,7 @@ package io.github.simonnozaki.koy
 sealed class Value {
     abstract override fun toString(): kotlin.String
 
-    fun asInt(): Int = this as Int
+    fun asInt(): Int = (this as? Int) ?: throw KoyLangRuntimeException("Cannot convert ${this::class.simpleName} to int, expected Int.")
 
     fun asArray(): Array = this as Array
 

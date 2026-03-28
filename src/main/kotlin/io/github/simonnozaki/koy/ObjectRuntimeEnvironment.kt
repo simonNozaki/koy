@@ -6,14 +6,14 @@ data class ObjectRuntimeEnvironment(
 ) {
     fun setVal(key: String, properties: Map<String, Value>) {
         if (valObjects[key] != null) {
-            throw KoyLangRuntimeException("")
+            throw KoyLangRuntimeException("Declaration [ $key ] is already existed, so can not declare again.")
         }
         valObjects[key] = properties
     }
 
     fun setMutableVal(key: String, properties: Map<String, Value>) {
         if (mutableValObjects[key] != null) {
-            throw KoyLangRuntimeException("")
+            throw KoyLangRuntimeException("Declaration [ $key ] is already existed, so can not declare again.")
         }
         mutableValObjects[key] = properties
     }
