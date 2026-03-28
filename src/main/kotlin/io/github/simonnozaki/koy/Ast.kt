@@ -47,11 +47,9 @@ fun integer(value: Int): IntegerLiteral = IntegerLiteral(value)
 
 fun bool(value: Boolean) = BoolLiteral(value)
 
-@Suppress("ktlint:standard:function-naming")
-fun Array(vararg expressions: Expression) = ArrayLiteral(expressions.toList())
+fun array(vararg expressions: Expression) = ArrayLiteral(expressions.toList())
 
-@Suppress("ktlint:standard:function-naming")
-fun Object(properties: Map<String, Expression>) = ObjectLiteral(properties)
+fun obj(properties: Map<String, Expression>) = ObjectLiteral(properties)
 
 fun str(value: String) = StringLiteral(value)
 
@@ -59,13 +57,11 @@ fun identifier(name: String) = Identifier(name)
 
 fun assign(name: String, expression: Expression) = Assignment(name, expression)
 
-@Suppress("ktlint:standard:function-naming")
-fun Block(vararg expressions: Expression): BlockExpression = BlockExpression(expressions.toList())
+fun block(vararg expressions: Expression): BlockExpression = BlockExpression(expressions.toList())
 
 fun call(name: String, vararg expressions: Expression): FunctionCall = FunctionCall(name, expressions.toList())
 
-@Suppress("ktlint:standard:function-naming")
-fun Println(expression: Expression) = PrintLn(expression)
+fun printLn(expression: Expression) = PrintLn(expression)
 
 fun defineFunction(name: String, args: List<String>, body: Expression) = FunctionDefinition(name, args, body)
 
@@ -73,12 +69,10 @@ fun increment(name: String) = UnaryExpression(UnaryOperator.INCREMENT, identifie
 
 fun decrement(name: String) = UnaryExpression(UnaryOperator.DECREMENT, identifier(name))
 
-@Suppress("ktlint:standard:function-naming")
-fun If(condition: Expression, thenClause: Expression, elseClause: Optional<Expression>): IfExpression =
+fun ifExpr(condition: Expression, thenClause: Expression, elseClause: Optional<Expression>): IfExpression =
     IfExpression(condition, thenClause, elseClause)
 
-@Suppress("ktlint:standard:function-naming")
-fun While(condition: Expression, body: Expression) = WhileExpression(condition, body)
+fun whileExpr(condition: Expression, body: Expression) = WhileExpression(condition, body)
 
 data class Program(
     val definitions: List<TopLevel>,
