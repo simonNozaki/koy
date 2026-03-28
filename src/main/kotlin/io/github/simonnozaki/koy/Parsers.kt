@@ -35,7 +35,7 @@ object Parsers {
     private val LT: Parser<Char, Unit> = string("<").then(SPACINGS)
     private val LT_EQ: Parser<Char, Unit> = string("<=").then(SPACINGS)
     private val GT: Parser<Char, Unit> = string(">").then(SPACINGS)
-    private val GT_EQ: Parser<Char, Unit> = string("=>").then(SPACINGS)
+    private val GT_EQ: Parser<Char, Unit> = string(">=").then(SPACINGS)
     private val INCREMENT: Parser<Char, Unit> = string("++").then(SPACINGS)
     private val DECREMENT: Parser<Char, Unit> = string("--").then(SPACINGS)
     private val FN: Parser<Char, Unit> = string("fn").then(SPACINGS)
@@ -371,12 +371,12 @@ object Parsers {
      *   'mutable' 'val' identifier '=' expression;
      * ```
      */
-    private fun mutableValDefinition(): Parser<Char, ValDefinition> {
+    private fun mutableValDefinition(): Parser<Char, TopLevel.MutableValDefinition> {
         val defGlobal = MUTABLE.then(VAL).then(IDENT)
         val defInitializer = EQ.then(expression())
         return defGlobal.bind { name ->
             defInitializer.bind { expression ->
-                SEMI_COLON.map { ValDefinition(name, expression) }
+                SEMI_COLON.map { TopLevel.MutableValDefinition(name, expression) }
             }
         }
     }
@@ -403,7 +403,7 @@ object Parsers {
 
     /**
      * comparative <- addictive (
-     *   ('==') / (!=') / ('<') / ('<=') / ('>') / ('=>') addictive
+     *   ('==') / ('!=') / ('<') / ('<=') / ('>') / ('>=') addictive
      * )*;
      */
     private fun comparative(): Parser<Char, Expression> {

@@ -67,6 +67,42 @@ class IntegrationTests {
         }
     }
 
+    // --- Top-level mutable val ---
+
+    @Nested
+    inner class `when using top-level mutable val` {
+        @Test
+        fun `should allow reassignment of top-level mutable val`() {
+            val source =
+                """
+                mutable val count = 0;
+                fn main() {
+                  count = count + 1;
+                  count;
+                }
+                """.trimIndent()
+            assertEquals(1, run(source).asInt().value)
+        }
+
+        @Test
+        fun `should allow top-level mutable val used in loop`() {
+            val source =
+                """
+                mutable val acc = 0;
+                fn main() {
+                  mutable val i = 1;
+                  while (i <= 5) {
+                    acc = acc + i;
+                    i = i + 1;
+                  }
+                  acc;
+                }
+                """.trimIndent()
+            // 1+2+3+4+5 = 15
+            assertEquals(15, run(source).asInt().value)
+        }
+    }
+
     // --- Loops and objects ---
 
     @Nested
