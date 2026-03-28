@@ -4,7 +4,6 @@ import org.javafp.parsecj.input.Input
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Integration tests: source string -> parser -> interpreter
@@ -13,7 +12,6 @@ import kotlin.test.assertTrue
  * Error cases and edge cases are covered by unit tests.
  */
 class IntegrationTests {
-
     private fun run(source: String): Value {
         val program = Parsers.program().parse(Input.of(source)).result
         return Interpreter().callMain(program)
@@ -23,35 +21,37 @@ class IntegrationTests {
 
     @Nested
     inner class `when evaluating basic programs` {
-
         @Test
         fun `should evaluate variable declarations and arithmetic`() {
-            val source = """
+            val source =
+                """
                 val x = 10;
                 val y = 20;
                 fn main() {
                   x + y;
                 }
-            """.trimIndent()
+                """.trimIndent()
             assertEquals(30, run(source).asInt().value)
         }
 
         @Test
         fun `should call user-defined function`() {
-            val source = """
+            val source =
+                """
                 fn add(x, y) {
                   x + y;
                 }
                 fn main() {
                   add(10, 20);
                 }
-            """.trimIndent()
+                """.trimIndent()
             assertEquals(30, run(source).asInt().value)
         }
 
         @Test
         fun `should evaluate recursive function`() {
-            val source = """
+            val source =
+                """
                 fn factorial(v) {
                   if (v < 2) {
                     1;
@@ -62,7 +62,7 @@ class IntegrationTests {
                 fn main() {
                   factorial(5);
                 }
-            """.trimIndent()
+                """.trimIndent()
             assertEquals(120, run(source).asInt().value)
         }
     }
@@ -71,10 +71,10 @@ class IntegrationTests {
 
     @Nested
     inner class `when evaluating programs with loops and objects` {
-
         @Test
         fun `should accumulate with while loop`() {
-            val source = """
+            val source =
+                """
                 fn main() {
                   mutable val i = 1;
                   mutable val acc = 0;
@@ -84,14 +84,15 @@ class IntegrationTests {
                   }
                   acc;
                 }
-            """.trimIndent()
+                """.trimIndent()
             // 1 + 2 + ... + 10 = 55
             assertEquals(55, run(source).asInt().value)
         }
 
         @Test
         fun `should call method on object`() {
-            val source = """
+            val source =
+                """
                 fn main() {
                   val greeter = {
                     greet: |msg| {
@@ -100,13 +101,14 @@ class IntegrationTests {
                   };
                   greeter.greet("Koy");
                 }
-            """.trimIndent()
+                """.trimIndent()
             assertEquals("Hello, Koy", run(source).asString().value)
         }
 
         @Test
         fun `should iterate with for-in`() {
-            val source = """
+            val source =
+                """
                 fn main() {
                   mutable val acc = 0;
                   for (i in 1 to 6) {
@@ -114,7 +116,7 @@ class IntegrationTests {
                   }
                   acc;
                 }
-            """.trimIndent()
+                """.trimIndent()
             // 1 + 2 + 3 + 4 + 5 = 15
             assertEquals(15, run(source).asInt().value)
         }

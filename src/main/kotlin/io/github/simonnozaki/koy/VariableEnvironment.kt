@@ -6,9 +6,8 @@ package io.github.simonnozaki.koy
 data class VariableEnvironment(
     val mutableVals: MutableMap<String, Value>,
     private val immutablesVals: MutableMap<String, Value> = mutableMapOf(),
-    private val next: VariableEnvironment?
+    private val next: VariableEnvironment?,
 ) {
-
     /**
      * Guard not to add duplicated variable entry
      */

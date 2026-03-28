@@ -1,18 +1,52 @@
 package io.github.simonnozaki.koy
 
-import io.github.simonnozaki.koy.Expression.*
-import io.github.simonnozaki.koy.Operator.*
+import io.github.simonnozaki.koy.Expression.ArrayLiteral
+import io.github.simonnozaki.koy.Expression.Assignment
+import io.github.simonnozaki.koy.Expression.BinaryExpression
+import io.github.simonnozaki.koy.Expression.BlockExpression
+import io.github.simonnozaki.koy.Expression.BoolLiteral
+import io.github.simonnozaki.koy.Expression.FunctionCall
+import io.github.simonnozaki.koy.Expression.FunctionLiteral
+import io.github.simonnozaki.koy.Expression.Identifier
+import io.github.simonnozaki.koy.Expression.IfExpression
+import io.github.simonnozaki.koy.Expression.IndexAccess
+import io.github.simonnozaki.koy.Expression.IntegerLiteral
+import io.github.simonnozaki.koy.Expression.LabeledCall
+import io.github.simonnozaki.koy.Expression.MethodCall
+import io.github.simonnozaki.koy.Expression.MutableValDeclaration
+import io.github.simonnozaki.koy.Expression.Nil
+import io.github.simonnozaki.koy.Expression.ObjectLiteral
+import io.github.simonnozaki.koy.Expression.PrintLn
+import io.github.simonnozaki.koy.Expression.PushElement
+import io.github.simonnozaki.koy.Expression.SetLiteral
+import io.github.simonnozaki.koy.Expression.StringLiteral
+import io.github.simonnozaki.koy.Expression.UnaryExpression
+import io.github.simonnozaki.koy.Expression.ValDeclaration
+import io.github.simonnozaki.koy.Expression.WhileExpression
+import io.github.simonnozaki.koy.Operator.ADD
+import io.github.simonnozaki.koy.Operator.DIVIDE
+import io.github.simonnozaki.koy.Operator.EQUAL
+import io.github.simonnozaki.koy.Operator.GREATER_OR_EQUAL
+import io.github.simonnozaki.koy.Operator.GREATER_THAN
+import io.github.simonnozaki.koy.Operator.LESS_OR_EQUAL
+import io.github.simonnozaki.koy.Operator.LESS_THAN
+import io.github.simonnozaki.koy.Operator.LOGICAL_AND
+import io.github.simonnozaki.koy.Operator.LOGICAL_OR
+import io.github.simonnozaki.koy.Operator.MULTIPLY
+import io.github.simonnozaki.koy.Operator.NOT_EQUAL
+import io.github.simonnozaki.koy.Operator.REMAINDER
+import io.github.simonnozaki.koy.Operator.SUBTRACT
 import io.github.simonnozaki.koy.TopLevel.FunctionDefinition
-import io.github.simonnozaki.koy.TopLevel.ValDefinition
 import io.github.simonnozaki.koy.TopLevel.MutableValDefinition
-import io.github.simonnozaki.koy.UnaryOperator.INCREMENT
+import io.github.simonnozaki.koy.TopLevel.ValDefinition
 import io.github.simonnozaki.koy.UnaryOperator.DECREMENT
+import io.github.simonnozaki.koy.UnaryOperator.INCREMENT
 
 // TODO builtin functions
 class Interpreter(
     private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(),
     private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), mutableMapOf(), null),
-    private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment()
+    private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment(),
 ) {
     /**
      * Return the value from interpreter variable environment
@@ -32,14 +66,7 @@ class Interpreter(
 
     fun getFunctions() = functionEnvironment
 
-    /**
-     * Return all variables and nodes of syntax tree from environment.
-     */
-    fun getVariables() = variableEnvironment.mutableVals.toMap()
-
-    fun withDebug() = apply {
-        this.requireDebugLog = true
-    }
+    fun withDebug() = apply { this.requireDebugLog = true }
 
     private var requireDebugLog = false
 
@@ -62,42 +89,51 @@ class Interpreter(
                     throw KoyLangRuntimeException("$lhs and $rhs is not compatible on add operation")
                 }
             }
+
             SUBTRACT -> {
                 requireBothInt(lhs, rhs, "subtract")
                 lhs.asInt().value - rhs.asInt().value
             }
+
             MULTIPLY -> {
                 requireBothInt(lhs, rhs, "multiply")
                 lhs.asInt().value * rhs.asInt().value
             }
+
             DIVIDE -> {
                 requireBothInt(lhs, rhs, "divide")
                 val right = rhs.asInt().value
                 if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
                 lhs.asInt().value / right
             }
+
             REMAINDER -> {
                 requireBothInt(lhs, rhs, "remainder")
                 val right = rhs.asInt().value
                 if (right == 0) throw KoyLangRuntimeException("Division by zero is not allowed")
                 lhs.asInt().value % right
             }
+
             LESS_THAN -> {
                 requireBothInt(lhs, rhs, "less-than")
                 lhs.asInt().value < rhs.asInt().value
             }
+
             LESS_OR_EQUAL -> {
                 requireBothInt(lhs, rhs, "less-or-equal")
                 lhs.asInt().value <= rhs.asInt().value
             }
+
             GREATER_THAN -> {
                 requireBothInt(lhs, rhs, "greater-than")
                 lhs.asInt().value > rhs.asInt().value
             }
+
             GREATER_OR_EQUAL -> {
                 requireBothInt(lhs, rhs, "greater-or-equal")
                 lhs.asInt().value >= rhs.asInt().value
             }
+
             EQUAL -> {
                 if (lhs.isInt() && rhs.isInt()) {
                     lhs.asInt().value == rhs.asInt().value
@@ -117,6 +153,7 @@ class Interpreter(
                     throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
                 }
             }
+
             NOT_EQUAL -> {
                 if (lhs.isInt() && rhs.isInt()) {
                     lhs.asInt().value != rhs.asInt().value
@@ -136,6 +173,7 @@ class Interpreter(
                     throw KoyLangRuntimeException("$lhs and $rhs is not comparable.")
                 }
             }
+
             LOGICAL_AND -> {
                 if (lhs.isBool() && rhs.isBool()) {
                     lhs.asBool().value && rhs.asBool().value
@@ -143,6 +181,7 @@ class Interpreter(
                     throw KoyLangRuntimeException("Both $lhs and $rhs should be boolean.")
                 }
             }
+
             LOGICAL_OR -> {
                 if (lhs.isBool() && rhs.isBool()) {
                     lhs.asBool().value || rhs.asBool().value
@@ -154,14 +193,13 @@ class Interpreter(
         return Value.of(result)
     }
 
-    fun interpret(expression: Expression): Value {
-        return if (requireDebugLog) {
+    fun interpret(expression: Expression): Value =
+        if (requireDebugLog) {
             println("|- $expression")
             execute(expression)
         } else {
             execute(expression)
         }
-    }
 
     private fun execute(expression: Expression): Value {
         if (expression is UnaryExpression) {
@@ -224,10 +262,14 @@ class Interpreter(
                     val def = defineFunction(expression.name, value.args, value.body)
                     functionEnvironment.setAsVal(def)
                 }
+
                 is Value.Object -> {
                     objectRuntimeEnvironment.setVal(expression.name, value.value)
                 }
-                else -> variableEnvironment.setVal(expression.name, value)
+
+                else -> {
+                    variableEnvironment.setVal(expression.name, value)
+                }
             }
             return value
         }
@@ -238,10 +280,14 @@ class Interpreter(
                     val def = defineFunction(expression.name, value.args, value.body)
                     functionEnvironment.setMutableVal(def)
                 }
+
                 is Value.Object -> {
                     objectRuntimeEnvironment.setMutableVal(expression.name, value.value)
                 }
-                else -> variableEnvironment.setMutableVal(expression.name, value)
+
+                else -> {
+                    variableEnvironment.setMutableVal(expression.name, value)
+                }
             }
             return value
         }
@@ -254,7 +300,8 @@ class Interpreter(
                 throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is not defined.")
             }
             if (variableEnvironment.isNotReAssignable(expression.name)) {
-                throw KoyLangRuntimeException("Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration.")
+                val m = "Declaration [ ${expression.name} ] is declared as val, so consider declaring it as mutable val declaration."
+                throw KoyLangRuntimeException(m)
             }
             when (value) {
                 is Value.Object -> maybeObject?.set(expression.name, value.value)
@@ -300,7 +347,7 @@ class Interpreter(
                 val index = interpret(expression.index).asInt()
                 val collection = interpret(expression.collection).asArray()
                 collection.items[index.value]
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Value.Nil
             }
         }
@@ -313,12 +360,16 @@ class Interpreter(
                     mutableItems.add(elm)
                     Value.Array(mutableItems.toList(), mutableItems.size)
                 }
+
                 is Value.Set -> {
                     val mutableSet = struct.value.toMutableSet()
                     mutableSet.add(elm)
                     Value.Set(mutableSet.toSet(), mutableSet.size)
                 }
-                else -> throw KoyLangRuntimeException("Subject $struct is not pushable.")
+
+                else -> {
+                    throw KoyLangRuntimeException("Subject $struct is not pushable.")
+                }
             }
         }
         if (expression is FunctionCall) {
@@ -329,7 +380,8 @@ class Interpreter(
             val body = definition.body
 
             if (actualParams.size != formalParams.size) {
-                throw KoyLangRuntimeException("Function ${expression.name} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+                val m = "Function ${expression.name} expects ${formalParams.size} argument(s) but got ${actualParams.size}"
+                throw KoyLangRuntimeException(m)
             }
             val values = actualParams.map { interpret(it) }
 
@@ -355,7 +407,8 @@ class Interpreter(
             val actualParams = mutableListOf<Expression>()
             // Get actual parameters from labeled parameters map, so throw exception on failed to get value from mappings
             for (param in formalParams) {
-                val e = labelMappings[param] ?: throw KoyLangRuntimeException("Parameter ${labelMappings[param]} is not defined in ${expression.name}")
+                val m = "Parameter ${labelMappings[param]} is not defined in ${expression.name}"
+                val e = labelMappings[param] ?: throw KoyLangRuntimeException(m)
                 actualParams.add(e)
             }
             val values = actualParams.map { interpret(it) }
@@ -372,25 +425,32 @@ class Interpreter(
             return result
         }
         if (expression is MethodCall) {
-            val obj: Map<String, Value> = when (expression.objectExpression) {
-                is ObjectLiteral -> {
-                    // On calling method from object literal, create map
-                    expression.objectExpression.properties.entries.associate { it.key to interpret(it.value) }
+            val obj: Map<String, Value> =
+                when (expression.objectExpression) {
+                    is ObjectLiteral -> {
+                        // On calling method from object literal, create map
+                        expression.objectExpression.properties.entries
+                            .associate { it.key to interpret(it.value) }
+                    }
+
+                    is Identifier -> {
+                        // On calling method from object variable, get property name and value map from runtime
+                        objectRuntimeEnvironment
+                            .findBindings(expression.objectExpression.name)
+                            ?.get(expression.objectExpression.name)
+                            ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
+                    }
+
+                    else -> {
+                        return interpret(expression.objectExpression)
+                    }
                 }
-                is Identifier -> {
-                    // On calling method from object variable, get property name and value map from runtime
-                    objectRuntimeEnvironment.findBindings(expression.objectExpression.name)
-                        ?.get(expression.objectExpression.name)
-                        ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] is not defined.")
-                }
-                else -> return interpret(expression.objectExpression)
-            }
             if (expression.method !is Identifier) {
                 throw KoyLangRuntimeException("Method [ ${expression.method} ] should be identifier.")
             }
 
-            val method = obj[expression.method.name]
-                ?: throw KoyLangRuntimeException("Object [ ${expression.objectExpression} ] does not have a method or property [ ${expression.method} ].")
+            val m = "Object [ ${expression.objectExpression} ] does not have a method or property [ ${expression.method} ]."
+            val method = obj[expression.method.name] ?: throw KoyLangRuntimeException(m)
             if (method !is Value.Function) {
                 return method
             }
@@ -398,7 +458,9 @@ class Interpreter(
             val actualParams = expression.args
             val formalParams = method.args
             if (actualParams.size != formalParams.size) {
-                throw KoyLangRuntimeException("Method ${expression.method} expects ${formalParams.size} argument(s) but got ${actualParams.size}")
+                throw KoyLangRuntimeException(
+                    "Method ${expression.method} expects ${formalParams.size} argument(s) but got ${actualParams.size}",
+                )
             }
             val values = actualParams.map { interpret(it) }
 
@@ -423,31 +485,45 @@ class Interpreter(
         val topLevels = program.definitions
         for (topLevel in topLevels) {
             when (topLevel) {
-                is FunctionDefinition -> functionEnvironment.setAsVal(topLevel)
+                is FunctionDefinition -> {
+                    functionEnvironment.setAsVal(topLevel)
+                }
+
                 is ValDefinition -> {
                     when (topLevel.expression) {
                         is FunctionLiteral -> {
                             val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
                             functionEnvironment.setAsVal(def)
                         }
+
                         is ObjectLiteral -> {
-                            val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
+                            val o = topLevel.expression.properties.entries
+                                .associate { it.key to interpret(it.value) }
                             objectRuntimeEnvironment.setVal(topLevel.name, o)
                         }
-                        else -> variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
+
+                        else -> {
+                            variableEnvironment.setVal(topLevel.name, interpret(topLevel.expression))
+                        }
                     }
                 }
+
                 is MutableValDefinition -> {
                     when (topLevel.expression) {
                         is FunctionLiteral -> {
                             val def = defineFunction(topLevel.name, topLevel.expression.args, topLevel.expression.body)
                             functionEnvironment.setMutableVal(def)
                         }
+
                         is ObjectLiteral -> {
-                            val o = topLevel.expression.properties.entries.associate { it.key to interpret(it.value) }
+                            val o = topLevel.expression.properties.entries
+                                .associate { it.key to interpret(it.value) }
                             objectRuntimeEnvironment.setMutableVal(topLevel.name, o)
                         }
-                        else -> variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
+
+                        else -> {
+                            variableEnvironment.setMutableVal(topLevel.name, interpret(topLevel.expression))
+                        }
                     }
                 }
             }

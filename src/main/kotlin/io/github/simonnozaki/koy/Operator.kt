@@ -1,6 +1,6 @@
 package io.github.simonnozaki.koy
 
-enum class Operator{
+enum class Operator {
     ADD,
     SUBTRACT,
     MULTIPLY,
@@ -13,5 +13,5 @@ enum class Operator{
     EQUAL,
     NOT_EQUAL,
     LOGICAL_AND,
-    LOGICAL_OR
+    LOGICAL_OR,
 }
