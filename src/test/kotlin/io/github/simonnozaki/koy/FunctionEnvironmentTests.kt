@@ -6,7 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 
 class FunctionEnvironmentTests {
-    private fun definition(name: String) = TopLevel.FunctionDefinition(name, listOf(), Block(integer(0)))
+    private fun definition(name: String) = TopLevel.FunctionDefinition(name, listOf(), block(integer(0)))
 
     // --- getDefinition ---
 

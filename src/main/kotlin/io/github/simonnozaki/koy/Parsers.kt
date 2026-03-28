@@ -568,11 +568,11 @@ object Parsers {
                 IN.then(expression()).bind { from ->
                     TO.then(expression()).bind { to ->
                         RPAREN.then(line()).map {
-                            Block(
+                            block(
                                 MutableValDeclaration(name, from),
-                                While(
+                                whileExpr(
                                     lessThan(identifier(name), to),
-                                    Block(
+                                    block(
                                         it,
                                         assign(name, add(identifier(name), integer(1))),
                                     ),

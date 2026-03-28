@@ -241,7 +241,7 @@ class InterpreterTests {
     inner class `when evaluating control flow` {
         @Test
         fun `should return true when if-without-else and condition is false`() {
-            val result = Interpreter().interpret(If(bool(false), integer(1), Optional.empty()))
+            val result = Interpreter().interpret(ifExpr(bool(false), integer(1), Optional.empty()))
             assertTrue(result.isBool())
         }
 
@@ -249,7 +249,7 @@ class InterpreterTests {
         fun `should not execute while body when condition is initially false`() {
             val interpreter = Interpreter()
             interpreter.interpret(MutableValDeclaration("i", integer(0)))
-            interpreter.interpret(While(bool(false), assign("i", integer(99))))
+            interpreter.interpret(whileExpr(bool(false), assign("i", integer(99))))
             assertEquals(0, interpreter.getValue("i")?.asInt()?.value)
         }
 
@@ -258,7 +258,7 @@ class InterpreterTests {
             val interpreter = Interpreter()
             interpreter.interpret(MutableValDeclaration("i", IntegerLiteral(0)))
             interpreter.interpret(
-                While(
+                whileExpr(
                     BinaryExpression(Operator.LESS_THAN, identifier("i"), IntegerLiteral(10)),
                     assign("i", BinaryExpression(Operator.ADD, identifier("i"), IntegerLiteral(1))),
                 ),
@@ -274,7 +274,7 @@ class InterpreterTests {
         @Test
         fun `should define array literal with correct size`() {
             val interpreter = Interpreter()
-            interpreter.interpret(ValDeclaration("a", Array(IntegerLiteral(1), IntegerLiteral(3), IntegerLiteral(5))))
+            interpreter.interpret(ValDeclaration("a", array(IntegerLiteral(1), IntegerLiteral(3), IntegerLiteral(5))))
             assertEquals(
                 3,
                 interpreter
@@ -299,7 +299,7 @@ class InterpreterTests {
         fun `should access array element by index`() {
             val result =
                 Interpreter().interpret(
-                    IndexAccess(Array(integer(10), integer(20), integer(30)), integer(1)),
+                    IndexAccess(array(integer(10), integer(20), integer(30)), integer(1)),
                 )
             assertEquals(20, result.asInt().value)
         }
@@ -308,7 +308,7 @@ class InterpreterTests {
         fun `should return nil on out-of-bounds index access`() {
             val result =
                 Interpreter().interpret(
-                    IndexAccess(Array(integer(1), integer(2)), integer(99)),
+                    IndexAccess(array(integer(1), integer(2)), integer(99)),
                 )
             assertTrue(result.isNil())
         }
@@ -318,7 +318,7 @@ class InterpreterTests {
             val result =
                 Interpreter()
                     .interpret(
-                        PushElement(Array(integer(1), integer(2)), integer(3)),
+                        PushElement(array(integer(1), integer(2)), integer(3)),
                     ).asArray()
             assertEquals(3, result.items.size)
             assertEquals(Value.Int(3), result.items[2])
@@ -350,7 +350,7 @@ class InterpreterTests {
         fun `should evaluate object literal properties`() {
             val interpreter = Interpreter()
             interpreter.interpret(
-                ValDeclaration("o", Object(mapOf("a" to integer(1), "b" to str("1")))),
+                ValDeclaration("o", obj(mapOf("a" to integer(1), "b" to str("1")))),
             )
             val o = interpreter.getValue("o")?.asObject()?.value
             assertEquals(1, o?.get("a")?.asInt()?.value)
@@ -363,12 +363,12 @@ class InterpreterTests {
             listOf(
                 ValDeclaration(
                     "object",
-                    Object(
+                    obj(
                         mapOf(
                             "print" to
                                 FunctionLiteral(
                                     listOf("msg"),
-                                    Block(BinaryExpression(Operator.ADD, StringLiteral("Hello, "), Identifier("msg"))),
+                                    block(BinaryExpression(Operator.ADD, StringLiteral("Hello, "), Identifier("msg"))),
                                 ),
                         ),
                     ),
@@ -383,12 +383,12 @@ class InterpreterTests {
             val result =
                 Interpreter().interpret(
                     MethodCall(
-                        Object(
+                        obj(
                             mapOf(
                                 "greet" to
                                     FunctionLiteral(
                                         listOf("msg"),
-                                        Block(
+                                        block(
                                             add(str("Hello, "), identifier("msg")),
                                         ),
                                     ),
@@ -404,7 +404,7 @@ class InterpreterTests {
         @Test
         fun `should return non-function property value via method call`() {
             val interpreter = Interpreter()
-            interpreter.interpret(ValDeclaration("obj", Object(mapOf("x" to integer(42)))))
+            interpreter.interpret(ValDeclaration("obj", obj(mapOf("x" to integer(42)))))
             val result = interpreter.interpret(MethodCall(Identifier("obj"), Identifier("x"), listOf()))
             assertEquals(42, result.asInt().value)
         }
@@ -419,7 +419,7 @@ class InterpreterTests {
         @Test
         fun `should throw on method call for undefined method`() {
             val interpreter = Interpreter()
-            interpreter.interpret(ValDeclaration("obj", Object(mapOf("x" to integer(1)))))
+            interpreter.interpret(ValDeclaration("obj", obj(mapOf("x" to integer(1)))))
             assertThrows<KoyLangRuntimeException> {
                 interpreter.interpret(MethodCall(Identifier("obj"), Identifier("noSuchMethod"), listOf()))
             }
@@ -434,8 +434,8 @@ class InterpreterTests {
         fun `should evaluate main function calling another function`() {
             val topLevels =
                 listOf(
-                    defineFunction("main", listOf(), Block(Println(call("add", integer(10), integer(20))))),
-                    defineFunction("add", listOf("v1", "v2"), Block(add(identifier("v1"), identifier("v2")))),
+                    defineFunction("main", listOf(), block(printLn(call("add", integer(10), integer(20))))),
+                    defineFunction("add", listOf("v1", "v2"), block(add(identifier("v1"), identifier("v2")))),
                 )
             assertEquals(30, Interpreter().callMain(Program(topLevels)).asInt().value)
         }
@@ -447,8 +447,8 @@ class InterpreterTests {
                     defineFunction(
                         "factorial",
                         listOf("v"),
-                        Block(
-                            If(
+                        block(
+                            ifExpr(
                                 lessThan(identifier("v"), integer(2)),
                                 integer(1),
                                 Optional.of(
@@ -460,7 +460,7 @@ class InterpreterTests {
                             ),
                         ),
                     ),
-                    defineFunction("main", listOf(), Block(Println(call("factorial", integer(5))))),
+                    defineFunction("main", listOf(), block(printLn(call("factorial", integer(5))))),
                 )
             assertEquals(120, Interpreter().callMain(Program(topLevels)).asInt().value)
         }
@@ -499,11 +499,11 @@ class InterpreterTests {
         fun `should call function with labeled parameters`() {
             val topLevels =
                 listOf(
-                    defineFunction("add", listOf("x", "y"), Block(add(identifier("x"), identifier("y")))),
+                    defineFunction("add", listOf("x", "y"), block(add(identifier("x"), identifier("y")))),
                     defineFunction(
                         "main",
                         listOf(),
-                        Block(
+                        block(
                             LabeledCall(
                                 "add",
                                 listOf(
@@ -521,8 +521,8 @@ class InterpreterTests {
         fun `should throw on function call with too few args`() {
             val topLevels =
                 listOf(
-                    defineFunction("add", listOf("x", "y"), Block(add(identifier("x"), identifier("y")))),
-                    defineFunction("main", listOf(), Block(call("add", integer(1)))),
+                    defineFunction("add", listOf("x", "y"), block(add(identifier("x"), identifier("y")))),
+                    defineFunction("main", listOf(), block(call("add", integer(1)))),
                 )
             assertThrows<KoyLangRuntimeException> {
                 Interpreter().callMain(Program(topLevels))
@@ -533,8 +533,8 @@ class InterpreterTests {
         fun `should throw on function call with too many args`() {
             val topLevels =
                 listOf(
-                    defineFunction("add", listOf("x", "y"), Block(add(identifier("x"), identifier("y")))),
-                    defineFunction("main", listOf(), Block(call("add", integer(1), integer(2), integer(3)))),
+                    defineFunction("add", listOf("x", "y"), block(add(identifier("x"), identifier("y")))),
+                    defineFunction("main", listOf(), block(call("add", integer(1), integer(2), integer(3)))),
                 )
             assertThrows<KoyLangRuntimeException> {
                 Interpreter().callMain(Program(topLevels))
@@ -547,7 +547,7 @@ class InterpreterTests {
             interpreter.interpret(
                 ValDeclaration(
                     "obj",
-                    Object(mapOf("add" to FunctionLiteral(listOf("x", "y"), Block(add(identifier("x"), identifier("y")))))),
+                    obj(mapOf("add" to FunctionLiteral(listOf("x", "y"), block(add(identifier("x"), identifier("y")))))),
                 ),
             )
             assertThrows<KoyLangRuntimeException> {
@@ -561,7 +561,7 @@ class InterpreterTests {
             interpreter.interpret(
                 ValDeclaration(
                     "obj",
-                    Object(mapOf("add" to FunctionLiteral(listOf("x", "y"), Block(add(identifier("x"), identifier("y")))))),
+                    obj(mapOf("add" to FunctionLiteral(listOf("x", "y"), block(add(identifier("x"), identifier("y")))))),
                 ),
             )
             assertThrows<KoyLangRuntimeException> {
@@ -578,7 +578,7 @@ class InterpreterTests {
         fun `should declare mutable val as function literal`() {
             val interpreter = Interpreter()
             interpreter.interpret(
-                MutableValDeclaration("f", FunctionLiteral(listOf("x"), Block(add(identifier("x"), integer(1))))),
+                MutableValDeclaration("f", FunctionLiteral(listOf("x"), block(add(identifier("x"), integer(1))))),
             )
             assertEquals("f", interpreter.getFunction("f").name)
         }
@@ -586,7 +586,7 @@ class InterpreterTests {
         @Test
         fun `should declare mutable val as object`() {
             val interpreter = Interpreter()
-            interpreter.interpret(MutableValDeclaration("obj", Object(mapOf("n" to integer(10)))))
+            interpreter.interpret(MutableValDeclaration("obj", obj(mapOf("n" to integer(10)))))
             assertEquals(
                 Value.Int(10),
                 interpreter
@@ -630,7 +630,7 @@ class InterpreterTests {
             val topLevels =
                 listOf(
                     TopLevel.MutableValDefinition("count", integer(0)),
-                    defineFunction("main", listOf(), Block(identifier("count"))),
+                    defineFunction("main", listOf(), block(identifier("count"))),
                 )
             assertEquals(0, Interpreter().callMain(Program(topLevels)).asInt().value)
         }
@@ -639,8 +639,8 @@ class InterpreterTests {
         fun `should support top-level mutable val as function literal`() {
             val topLevels =
                 listOf(
-                    TopLevel.MutableValDefinition("double", FunctionLiteral(listOf("x"), Block(multiply(identifier("x"), integer(2))))),
-                    defineFunction("main", listOf(), Block(call("double", integer(5)))),
+                    TopLevel.MutableValDefinition("double", FunctionLiteral(listOf("x"), block(multiply(identifier("x"), integer(2))))),
+                    defineFunction("main", listOf(), block(call("double", integer(5)))),
                 )
             assertEquals(10, Interpreter().callMain(Program(topLevels)).asInt().value)
         }
@@ -649,8 +649,8 @@ class InterpreterTests {
         fun `should support top-level mutable val as object`() {
             val topLevels =
                 listOf(
-                    TopLevel.MutableValDefinition("cfg", Object(mapOf("value" to integer(99)))),
-                    defineFunction("main", listOf(), Block(identifier("cfg"))),
+                    TopLevel.MutableValDefinition("cfg", obj(mapOf("value" to integer(99)))),
+                    defineFunction("main", listOf(), block(identifier("cfg"))),
                 )
             assertTrue(Interpreter().callMain(Program(topLevels)).isObject())
         }
@@ -660,7 +660,7 @@ class InterpreterTests {
             val topLevels =
                 listOf(
                     TopLevel.ValDefinition("n", integer(42)),
-                    defineFunction("main", listOf(), Block(identifier("n"))),
+                    defineFunction("main", listOf(), block(identifier("n"))),
                 )
             assertEquals(42, Interpreter().callMain(Program(topLevels)).asInt().value)
         }
@@ -669,8 +669,8 @@ class InterpreterTests {
         fun `should support top-level val as object`() {
             val topLevels =
                 listOf(
-                    TopLevel.ValDefinition("cfg", Object(mapOf("key" to str("val")))),
-                    defineFunction("main", listOf(), Block(identifier("cfg"))),
+                    TopLevel.ValDefinition("cfg", obj(mapOf("key" to str("val")))),
+                    defineFunction("main", listOf(), block(identifier("cfg"))),
                 )
             assertTrue(Interpreter().callMain(Program(topLevels)).isObject())
         }
