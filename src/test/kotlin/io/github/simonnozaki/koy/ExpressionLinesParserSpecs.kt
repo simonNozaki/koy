@@ -85,6 +85,34 @@ class ExpressionLinesParserSpecs {
         }
 
         @Test
+        fun `should evaluate greater-than-or-equal comparison`() {
+            val interpreter =
+                run(
+                    """
+                mutable val result = false;
+                if (5 >= 5) {
+                  result = true;
+                }
+            """,
+                )
+            assertEquals(true, interpreter.getValue("result")?.asBool()?.value)
+        }
+
+        @Test
+        fun `should evaluate greater-than-or-equal as false when lhs is less`() {
+            val interpreter =
+                run(
+                    """
+                mutable val result = true;
+                if (3 >= 5) {
+                  result = false;
+                }
+            """,
+                )
+            assertEquals(true, interpreter.getValue("result")?.asBool()?.value)
+        }
+
+        @Test
         fun `should increment in while using prefix increment`() {
             val interpreter =
                 run(
