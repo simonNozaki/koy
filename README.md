@@ -53,9 +53,6 @@ This project uses [ktlint](https://pinterest.github.io/ktlint/) for Kotlin code 
 ```bash
 # Check for violations (exits non-zero if any are found)
 ./gradlew ktlintCheck
-
-# Auto-fix violations where possible
-./gradlew ktlintFormat
 ```
 
 ### Baseline
