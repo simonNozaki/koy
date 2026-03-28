@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
             System.err.println(
                 """
                 |Usage: java -jar koy.jar -f <fileName>.koy (-d)*
-                | -d             : enable debug logg printing ast
+                | -d             : enable debug logging (prints AST).
                 |-f <fileName>   : read a program from <fileName> and execute it
                 """.trimIndent(),
             )
