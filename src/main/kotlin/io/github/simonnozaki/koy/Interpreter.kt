@@ -41,12 +41,14 @@ import io.github.simonnozaki.koy.TopLevel.MutableValDefinition
 import io.github.simonnozaki.koy.TopLevel.ValDefinition
 import io.github.simonnozaki.koy.UnaryOperator.DECREMENT
 import io.github.simonnozaki.koy.UnaryOperator.INCREMENT
+import java.io.PrintStream
 
 // TODO builtin functions
 class Interpreter(
     private val functionEnvironment: FunctionEnvironment = FunctionEnvironment(),
     private var variableEnvironment: VariableEnvironment = VariableEnvironment(mutableMapOf(), mutableMapOf(), null),
     private val objectRuntimeEnvironment: ObjectRuntimeEnvironment = ObjectRuntimeEnvironment(),
+    private val out: PrintStream = System.out,
 ) {
     /**
      * Return the value from interpreter variable environment
@@ -195,7 +197,7 @@ class Interpreter(
 
     fun interpret(expression: Expression): Value =
         if (requireDebugLog) {
-            println("|- $expression")
+            out.println("|- $expression")
             execute(expression)
         } else {
             execute(expression)
@@ -311,7 +313,7 @@ class Interpreter(
         }
         if (expression is PrintLn) {
             val v = interpret(expression.arg)
-            println(v)
+            out.println(v)
             return v
         }
         if (expression is IfExpression) {
