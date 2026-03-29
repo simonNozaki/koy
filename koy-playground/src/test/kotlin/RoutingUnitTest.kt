@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.junit.jupiter.api.BeforeEach
 
 /**
  * Unit tests for the routing layer.
@@ -67,7 +68,7 @@ class RoutingUnitTest {
     @Nested
     inner class `when runCode returns an error` {
         @Test
-        fun `should respond with 200`() = testApplication {
+        fun `should respond with 400`() = testApplication {
             application { configure(runCode = { RunResponse(error = "SomeException: bad code") }) }
 
             val response = client.post("/run") {
@@ -75,7 +76,7 @@ class RoutingUnitTest {
                 setBody("""{"code":"???"}""")
             }
 
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.BadRequest, response.status)
         }
 
         @Test

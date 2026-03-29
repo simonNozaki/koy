@@ -29,6 +29,7 @@ class PlaygroundIntegrationTest {
                 setBody("""{"code":"println(42);"}""")
             }
 
+            assertEquals(HttpStatusCode.OK, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertEquals("42", body.output?.trim())
             assertNull(body.error)
@@ -43,6 +44,7 @@ class PlaygroundIntegrationTest {
                 setBody("""{"code":"val x = 10;\nval y = 20;\nprintln(x + y);"}""")
             }
 
+            assertEquals(HttpStatusCode.OK, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertEquals("30", body.output?.trim())
             assertNull(body.error)
@@ -52,7 +54,7 @@ class PlaygroundIntegrationTest {
     @Nested
     inner class `when invalid koy code is submitted` {
         @Test
-        fun `should return error on parse failure`() = testApplication {
+        fun `should return 400 on parse failure`() = testApplication {
             application { configure() }
 
             val response = client.post("/run") {
@@ -60,13 +62,14 @@ class PlaygroundIntegrationTest {
                 setBody("""{"code":"???invalid???"}""")
             }
 
+            assertEquals(HttpStatusCode.BadRequest, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertNull(body.output)
             assertNotNull(body.error)
         }
 
         @Test
-        fun `should return stack trace when undeclared variable is referenced`() = testApplication {
+        fun `should return 400 with stack trace when undeclared variable is referenced`() = testApplication {
             application { configure() }
 
             val response = client.post("/run") {
@@ -74,6 +77,7 @@ class PlaygroundIntegrationTest {
                 setBody("""{"code":"println(undeclared);"}""")
             }
 
+            assertEquals(HttpStatusCode.BadRequest, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertNull(body.output)
             assertNotNull(body.error)
