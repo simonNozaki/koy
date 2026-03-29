@@ -31,6 +31,9 @@ data class RunResponse(
     val error: String? = null,
 )
 
+/**
+ * Playground server main function. Execute koy code and return the responses.
+ */
 fun main() {
     embeddedServer(Netty, port = 8080) {
         configure()
