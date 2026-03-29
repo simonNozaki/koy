@@ -124,6 +124,12 @@ if (actualParams.size != formalParams.size) { ... }
 
 ---
 
+## 関連スキル
+
+テストの書き方・構造化パターンについては `/test-patterns` スキルを参照すること。
+
+---
+
 ## Gitワークフロー
 
 1. **ブランチを切ってから始める** — `git checkout -b fix/<topic>` または `add/<topic>`
