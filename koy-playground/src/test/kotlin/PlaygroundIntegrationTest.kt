@@ -76,7 +76,8 @@ class PlaygroundIntegrationTest {
 
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertNull(body.output)
-            assertTrue(body.error!!.isNotBlank())
+            assertNotNull(body.error)
+            assertTrue(body.error.isNotBlank())
         }
     }
 }
