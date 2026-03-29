@@ -4,6 +4,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Nested
@@ -18,17 +19,19 @@ import kotlin.test.assertTrue
  * Uses the real interpreter to verify end-to-end behavior via HTTP.
  */
 class PlaygroundIntegrationTest {
+    private fun test(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
+        application { configure() }
+        block()
+    }
+
     @Nested
     inner class `when valid koy code is submitted` {
         @Test
-        fun `should return println output`() = testApplication {
-            application { configure() }
-
+        fun `should return println output`() = test {
             val response = client.post("/run") {
                 contentType(ContentType.Application.Json)
                 setBody("""{"code":"println(42);"}""")
             }
-
             assertEquals(HttpStatusCode.OK, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertEquals("42", body.output?.trim())
@@ -36,14 +39,11 @@ class PlaygroundIntegrationTest {
         }
 
         @Test
-        fun `should evaluate arithmetic and return result via println`() = testApplication {
-            application { configure() }
-
+        fun `should evaluate arithmetic and return result via println`() = test {
             val response = client.post("/run") {
                 contentType(ContentType.Application.Json)
                 setBody("""{"code":"val x = 10;\nval y = 20;\nprintln(x + y);"}""")
             }
-
             assertEquals(HttpStatusCode.OK, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertEquals("30", body.output?.trim())
@@ -54,14 +54,11 @@ class PlaygroundIntegrationTest {
     @Nested
     inner class `when invalid koy code is submitted` {
         @Test
-        fun `should return 400 on parse failure`() = testApplication {
-            application { configure() }
-
+        fun `should return 400 on parse failure`() = test {
             val response = client.post("/run") {
                 contentType(ContentType.Application.Json)
                 setBody("""{"code":"???invalid???"}""")
             }
-
             assertEquals(HttpStatusCode.BadRequest, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertNull(body.output)
@@ -69,14 +66,11 @@ class PlaygroundIntegrationTest {
         }
 
         @Test
-        fun `should return 400 with stack trace when undeclared variable is referenced`() = testApplication {
-            application { configure() }
-
+        fun `should return 400 with stack trace when undeclared variable is referenced`() = test {
             val response = client.post("/run") {
                 contentType(ContentType.Application.Json)
                 setBody("""{"code":"println(undeclared);"}""")
             }
-
             assertEquals(HttpStatusCode.BadRequest, response.status)
             val body = Json.decodeFromString<RunResponse>(response.bodyAsText())
             assertNull(body.output)
