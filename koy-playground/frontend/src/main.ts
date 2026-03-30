@@ -9,9 +9,13 @@ val y = 20;
 println(x + y);
 `;
 
-const editorPane = document.getElementById("editor-pane")!;
-const runBtn = document.getElementById("run-btn") as HTMLButtonElement;
-const output = document.getElementById("output")!;
+const editorPane = document.getElementById("editor-pane");
+const runBtn = document.getElementById("run-btn") as HTMLButtonElement | null;
+const output = document.getElementById("output");
+
+if (!editorPane || !runBtn || !output) {
+  throw new Error("Required DOM elements not found. Check index.html.");
+}
 
 const view = new EditorView({
   state: EditorState.create({
@@ -48,6 +52,9 @@ runBtn.addEventListener("click", async () => {
       output.textContent = data.output;
     } else if (data.error) {
       output.textContent = data.error;
+      output.className = "error";
+    } else {
+      output.textContent = `Request failed with status ${res.status}`;
       output.className = "error";
     }
   } catch (e) {
