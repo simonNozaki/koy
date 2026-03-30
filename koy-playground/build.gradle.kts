@@ -20,8 +20,8 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:3.4.2")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.2")
     implementation("io.ktor:ktor-server-cors:3.4.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
-    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+    implementation("ch.qos.logback:logback-classic:1.5.32")
 
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host:3.4.2")
@@ -29,6 +29,11 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    dependsOn(":shadowJar")
+}
+
+tasks.named("startScripts") {
+    dependsOn(":shadowJar")
 }
 
 application {
