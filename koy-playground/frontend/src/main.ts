@@ -1,3 +1,4 @@
+import "./layout.css";
 import { basicSetup, EditorView } from "codemirror";
 import { EditorState } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
