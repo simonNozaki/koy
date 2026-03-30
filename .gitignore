@@ -39,3 +39,7 @@ out/
 # Ignore Gradle build output directory
 build
 /color-usecase/docs/
+
+# Playground frontend
+koy-playground/frontend/node_modules/
+koy-playground/src/main/resources/static/
