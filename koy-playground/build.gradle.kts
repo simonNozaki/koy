@@ -37,5 +37,5 @@ tasks.named("startScripts") {
 }
 
 application {
-    mainClass.set("PlaygroundServerKt")
+    mainClass.set("io.github.simonnozaki.koy.playground.PlaygroundServerKt")
 }

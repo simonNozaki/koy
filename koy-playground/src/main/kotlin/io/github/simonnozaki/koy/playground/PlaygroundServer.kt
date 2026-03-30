@@ -1,3 +1,5 @@
+package io.github.simonnozaki.koy.playground
+
 import io.github.simonnozaki.koy.Interpreter
 import io.github.simonnozaki.koy.Parsers
 import io.ktor.http.HttpHeaders
@@ -52,6 +54,7 @@ fun Application.configure(runCode: (String) -> RunResponse = ::executeCode) {
     routing {
         post("/run") {
             val request = call.receive<RunRequest>()
+            call.application.environment.log.info("Start interpreting Koy code")
             val response = runCode(request.code)
             val status = if (response.error != null) HttpStatusCode.BadRequest else HttpStatusCode.OK
             call.respond(status, response)
