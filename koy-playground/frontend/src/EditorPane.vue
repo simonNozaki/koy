@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
-import { basicSetup, EditorView } from "codemirror";
+import { defaultKeymap } from "@codemirror/commands";
 import { EditorState } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
-import { defaultKeymap } from "@codemirror/commands";
+import { basicSetup, EditorView } from "codemirror";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 const props = defineProps<{
   initialCode: string;
@@ -28,7 +28,10 @@ onMounted(() => {
         EditorView.theme({
           "&": { height: "100%", background: "#1e1e1e" },
           ".cm-content": { caretColor: "#aeafad" },
-          ".cm-gutters": { background: "#1e1e1e", borderRight: "1px solid #3e3e3e" },
+          ".cm-gutters": {
+            background: "#1e1e1e",
+            borderRight: "1px solid #3e3e3e",
+          },
         }),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
