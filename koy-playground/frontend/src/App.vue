@@ -67,7 +67,7 @@ async function run() {
 }
 
 body {
-  font-family: monospace;
+  font-family: "JetBrains Mono", monospace;
   background: #1e1e1e;
   color: #d4d4d4;
   height: 100vh;
@@ -97,7 +97,7 @@ button {
   border-radius: 3px;
   cursor: pointer;
   font-size: 13px;
-  font-family: monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 button:hover { background: #1177bb; }

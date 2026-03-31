@@ -39,6 +39,16 @@ Then build the backend (from the repository root):
 ./gradlew :koy-playground:build
 ```
 
+## Run dev server(frontend only)
+
+Keeping backend on running, can start frontend dev server. 
+
+Frontend dev server only watch frontend changes. To rebuild backend, restart backend server.
+
+```bash
+mise exec -- pnpm dev
+```
+
 ## Run
 
 Start the server from the repository root:
