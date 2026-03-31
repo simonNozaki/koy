@@ -1,3 +1,5 @@
+import io.github.simonnozaki.koy.playground.RunResponse
+import io.github.simonnozaki.koy.playground.configure
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
