@@ -8,7 +8,7 @@ defineProps<{
 <template>
   <div class="output-pane">
     <h2>Output</h2>
-    <pre :class="{ error: error !== null }">{{ error ?? output ?? "" }}</pre>
+    <pre :class="{ error: !!error }">{{ error || output || "" }}</pre>
   </div>
 </template>
 

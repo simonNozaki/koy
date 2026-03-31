@@ -1,27 +1,27 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { basicSetup, EditorView } from "codemirror";
 import { EditorState } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
 import { defaultKeymap } from "@codemirror/commands";
+
+const props = defineProps<{
+  initialCode: string;
+}>();
 
 const emit = defineEmits<{
   "update:code": [code: string];
 }>();
 
 const editorEl = ref<HTMLElement | null>(null);
-
-const initialCode = `val x = 10;
-val y = 20;
-println(x + y);
-`;
+const editorView = ref<EditorView | null>(null);
 
 onMounted(() => {
   if (!editorEl.value) return;
 
-  new EditorView({
+  editorView.value = new EditorView({
     state: EditorState.create({
-      doc: initialCode,
+      doc: props.initialCode,
       extensions: [
         basicSetup,
         keymap.of(defaultKeymap),
@@ -39,6 +39,13 @@ onMounted(() => {
     }),
     parent: editorEl.value,
   });
+
+  emit("update:code", editorView.value.state.doc.toString());
+});
+
+onBeforeUnmount(() => {
+  editorView.value?.destroy();
+  editorView.value = null;
 });
 </script>
 

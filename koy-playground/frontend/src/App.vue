@@ -3,10 +3,12 @@ import { ref } from "vue";
 import EditorPane from "./EditorPane.vue";
 import OutputPane from "./OutputPane.vue";
 
-const code = ref<string>(`val x = 10;
+const initialCode = `val x = 10;
 val y = 20;
 println(x + y);
-`);
+`;
+
+const code = ref<string>(initialCode);
 const output = ref<string | null>(null);
 const error = ref<string | null>(null);
 const loading = ref(false);
@@ -16,12 +18,17 @@ async function run() {
   output.value = null;
   error.value = null;
 
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+
   try {
     const res = await fetch("/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code: code.value }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     const data: { output?: string; error?: string } = await res.json();
 
@@ -33,6 +40,7 @@ async function run() {
       error.value = `Request failed with status ${res.status}`;
     }
   } catch (e) {
+    clearTimeout(timeoutId);
     error.value = String(e);
   } finally {
     loading.value = false;
@@ -46,7 +54,7 @@ async function run() {
     <button :disabled="loading" @click="run">▶ Run</button>
   </header>
   <main>
-    <EditorPane @update:code="code = $event" />
+    <EditorPane :initial-code="initialCode" @update:code="code = $event" />
     <OutputPane :output="output" :error="error" />
   </main>
 </template>
