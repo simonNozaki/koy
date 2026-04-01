@@ -5,13 +5,9 @@ import { keymap } from "@codemirror/view";
 import { basicSetup, EditorView } from "codemirror";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
-const props = defineProps<{
-  initialCode: string;
-}>();
+const props = defineProps<{ initialCode: string }>();
 
-const emit = defineEmits<{
-  "update:code": [code: string];
-}>();
+const emit = defineEmits<{ "update:code": [code: string]; }>();
 
 const editorEl = ref<HTMLElement | null>(null);
 const editorView = ref<EditorView | null>(null);
@@ -27,11 +23,9 @@ onMounted(() => {
         keymap.of(defaultKeymap),
         EditorView.theme({
           "&": { height: "100%", background: "#1e1e1e" },
-          ".cm-content": { caretColor: "#aeafad" },
-          ".cm-gutters": {
-            background: "#1e1e1e",
-            borderRight: "1px solid #3e3e3e",
-          },
+          ".cm-content": { caretColor: "#ffffff", fontFamily: '"JetBrains Mono", monospace' },
+          ".cm-scroller": { fontFamily: '"JetBrains Mono", monospace' },
+          ".cm-gutters": { background: "#1e1e1e", borderRight: "1px solid #3e3e3e" },
         }),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
