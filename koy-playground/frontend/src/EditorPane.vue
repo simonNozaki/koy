@@ -4,6 +4,7 @@ import { EditorState } from "@codemirror/state";
 import { keymap } from "@codemirror/view";
 import { basicSetup, EditorView } from "codemirror";
 import { onBeforeUnmount, onMounted, ref } from "vue";
+import { koyLanguage } from "./koy-language";
 
 const props = defineProps<{ initialCode: string }>();
 
@@ -21,6 +22,7 @@ onMounted(() => {
       extensions: [
         basicSetup,
         keymap.of(defaultKeymap),
+        ...koyLanguage,
         EditorView.theme({
           "&": { height: "100%", background: "#1e1e1e" },
           ".cm-content": { caretColor: "#ffffff", fontFamily: '"JetBrains Mono", monospace' },

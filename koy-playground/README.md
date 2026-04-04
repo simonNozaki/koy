@@ -61,7 +61,4 @@ The server starts on `http://localhost:8080`.
 
 ## Usage
 
-1. Open `http://localhost:8080` in your browser.
-2. Write Koy code in the editor on the left.
-3. Click **▶ Run** to execute the code.
-4. The output appears in the right pane. If an error occurs, the stack trace is shown in red.
+![playground](./docs/playground.png)
