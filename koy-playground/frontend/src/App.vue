@@ -32,12 +32,11 @@ async function run() {
 
     const data: { output?: string; error?: string } = await res.json();
 
-    if (res.ok && data.output !== undefined && data.output !== null) {
-      output.value = data.output;
-    } else if (data.error) {
-      error.value = data.error;
+    if (res.ok) {
+      output.value = data.output ?? "";
+      error.value = null;
     } else {
-      error.value = `Request failed with status ${res.status}`;
+      error.value = data.error ?? `Request failed with status ${res.status}`;
     }
   } catch (e) {
     clearTimeout(timeoutId);

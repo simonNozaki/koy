@@ -25,17 +25,13 @@ mise install
 
 ## Build
 
-Build the frontend and bundle it into the backend's static resources:
+From the repository root, build the frontend and bundle it into backend static resources:
 
 ```bash
-cd frontend
+cd koy-playground/frontend
 pnpm install
 pnpm build
-```
-
-Then build the backend (from the repository root):
-
-```bash
+cd ../..
 ./gradlew :koy-playground:build
 ```
 
