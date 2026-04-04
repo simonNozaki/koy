@@ -10,6 +10,9 @@ const literals = new Set(["true", "false", "nil"]);
 const builtins = new Set(["println"]);
 
 const koyStreamLanguage = StreamLanguage.define({
+  tokenTable: {
+    builtin: tags.function(tags.variableName),
+  },
   token(stream) {
     if (stream.eatSpace()) return null;
 
@@ -30,7 +33,7 @@ const koyStreamLanguage = StreamLanguage.define({
       const word = stream.current();
       if (keywords.has(word)) return "keyword";
       if (literals.has(word)) return "atom";
-      if (builtins.has(word)) return "variableName.function";
+      if (builtins.has(word)) return "builtin";
       return null;
     }
 
