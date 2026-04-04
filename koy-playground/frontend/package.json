@@ -1,0 +1,30 @@
+{
+  "name": "koy-playground-frontend",
+  "version": "0.0.1",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "biome lint ./src",
+    "format": "biome format --write ./src",
+    "check": "biome check --write ./src"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.10",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "typescript": "~6.0.2",
+    "vite": "^8.0.1",
+    "vue-tsc": "^3.2.6"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.40.0",
+    "@lezer/highlight": "^1.2.3",
+    "codemirror": "^6.0.2",
+    "vue": "^3.5.31"
+  }
+}
